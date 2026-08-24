@@ -1434,7 +1434,7 @@ export function markNotificationsRead(state: StoreState, userId: string): StoreS
 export function updateProfile(
   state: StoreState,
   userId: string,
-  updates: Partial<Pick<User, "name" | "department" | "bio">>
+  updates: Partial<Pick<User, "name" | "student_id" | "department" | "bio">>
 ): StoreState {
   return {
     ...state,

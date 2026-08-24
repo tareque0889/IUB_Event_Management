@@ -51,7 +51,7 @@ export interface DataContextValue {
   doDeleteClub: (clubId: string) => void;
   doMarkNotificationsRead: () => void;
   doUpdateProfile: (
-    updates: Partial<Pick<User, "name" | "department" | "bio">>,
+    updates: Partial<Pick<User, "name" | "student_id" | "department" | "bio">>,
   ) => void;
   doRegisterUser: (data: {
     name: string;

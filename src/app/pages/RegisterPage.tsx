@@ -21,13 +21,14 @@ import {
 } from "../components/ui/select";
 import { Label } from "../components/ui/label";
 import { useAuth } from "../context/AuthContext";
+import { roleHome } from "../context/AuthContext";
 import { AuthBrandPanel } from "../components/AuthBrandPanel";
 import { GoogleIcon } from "../components/GoogleIcon";
 import { ComicButton } from "../components/ComicButton";
 
 export function RegisterPage() {
   const navigate = useNavigate();
-  const { register } = useAuth();
+  const { register, signInWithGoogle, currentUser } = useAuth();
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -77,6 +78,27 @@ export function RegisterPage() {
       setIsSubmitting(false);
     }
   }
+
+  async function handleGoogleSignIn() {
+    setIsSubmitting(true);
+    try {
+      await signInWithGoogle();
+    } catch (error) {
+      console.error("Google sign-up failed.", error);
+      toast.error("Google sign-up failed", {
+        description:
+          "Use an @iub.edu.bd Google account to continue.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  React.useEffect(() => {
+    if (currentUser) {
+      navigate(roleHome(currentUser.role), { replace: true });
+    }
+  }, [currentUser, navigate]);
 
   return (
     <div className="min-h-screen flex items-stretch">
@@ -209,7 +231,8 @@ export function RegisterPage() {
           <Button
             variant="outline"
             className="w-full gap-2.5 font-normal"
-            onClick={() => navigate("/login")}
+            onClick={handleGoogleSignIn}
+            disabled={isSubmitting}
           >
             <GoogleIcon className="size-4" />
             Sign up with Google
@@ -231,4 +254,3 @@ export function RegisterPage() {
 }
 
 // ─── Forgot Password ──────────────────────────────────────────────────────────
-

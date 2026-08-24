@@ -38,6 +38,7 @@ export function ProfilePage() {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({
     name: currentUser?.name ?? "",
+    student_id: currentUser?.student_id ?? "",
     department: currentUser?.department ?? "",
     bio: currentUser?.bio ?? "",
   });
@@ -46,6 +47,7 @@ export function ProfilePage() {
     if (currentUser) {
       setForm({
         name: currentUser.name,
+        student_id: currentUser.student_id,
         department: currentUser.department,
         bio: currentUser.bio ?? "",
       });
@@ -125,6 +127,15 @@ export function ProfilePage() {
                     onChange={(e) =>
                       setForm({ ...form, name: e.target.value })
                     }
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Student ID</Label>
+                  <Input
+                  value={form.student_id}
+                  onChange={(e) =>
+                    setForm({ ...form, student_id: e.target.value })
+                  }
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -259,4 +270,3 @@ export function ProfilePage() {
 }
 
 // ─── Notifications ────────────────────────────────────────────────────────────
-

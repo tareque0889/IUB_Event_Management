@@ -40,7 +40,7 @@ const DEMO_ACCOUNTS = [
 
 export function LoginPage() {
 
-  const { login, currentUser } = useAuth();
+  const { login, currentUser, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -63,6 +63,21 @@ export function LoginPage() {
       toast.error("Login failed", {
         description:
           "Could not sign you in. Please verify your credentials.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function handleGoogleSignIn() {
+    setIsSubmitting(true);
+    try {
+      await signInWithGoogle();
+    } catch (error) {
+      console.error("Google sign-in failed.", error);
+      toast.error("Google sign-in failed", {
+        description:
+          "Use an @iub.edu.bd Google account to continue.",
       });
     } finally {
       setIsSubmitting(false);
@@ -156,10 +171,11 @@ export function LoginPage() {
           <Button
             variant="outline"
             className="w-full gap-2.5 font-normal"
-            disabled
+            onClick={handleGoogleSignIn}
+            disabled={isSubmitting}
           >
             <GoogleIcon className="size-4" />
-            Continue with Google (Coming soon)
+            Continue with Google
           </Button>
 
           {!isFirebaseConfigured && (

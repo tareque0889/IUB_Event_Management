@@ -11,8 +11,10 @@
  */
 import {
   createUserWithEmailAndPassword,
+  GoogleAuthProvider,
   onAuthStateChanged,
   signInWithEmailAndPassword,
+  signInWithPopup,
   signOut,
   type User as FirebaseUser,
 } from "firebase/auth";
@@ -31,6 +33,11 @@ export interface RegisterPayload {
   password: string;
 }
 
+export interface GoogleSignInResult {
+  email: string;
+  displayName: string;
+}
+
 /**
  * Demo credentials used only when Firebase is not configured. These emails
  * exist in the seeded demo store, so login resolves to a real store user.
@@ -46,6 +53,17 @@ function assertIubEmail(email: string): void {
   if (!email.trim().toLowerCase().endsWith("@iub.edu.bd")) {
     throw new Error("Only @iub.edu.bd email addresses are allowed.");
   }
+}
+
+function createGoogleProvider(): GoogleAuthProvider {
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({
+    hd: "iub.edu.bd",
+    prompt: "select_account",
+  });
+  provider.addScope("email");
+  provider.addScope("profile");
+  return provider;
 }
 
 class AuthService {
@@ -105,6 +123,30 @@ class AuthService {
 
     // Demo fallback — no real account, just echo the email back.
     return email;
+  }
+
+  /** Signs in with Google and returns the authenticated profile. */
+  async loginWithGoogle(): Promise<GoogleSignInResult> {
+    if (!isFirebaseConfigured || !auth) {
+      throw new Error("Google sign-in requires Firebase configuration.");
+    }
+
+    const result = await signInWithPopup(auth, createGoogleProvider());
+    const email = result.user.email?.trim().toLowerCase();
+    if (!email) {
+      await signOut(auth);
+      throw new Error("Google account did not return an email address.");
+    }
+
+    if (!email.endsWith("@iub.edu.bd")) {
+      await signOut(auth);
+      throw new Error("Only @iub.edu.bd email addresses are allowed.");
+    }
+    return {
+      email,
+      displayName:
+        result.user.displayName?.trim() || email.split("@")[0],
+    };
   }
 
   async logout(): Promise<void> {

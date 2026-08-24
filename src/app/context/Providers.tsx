@@ -154,6 +154,37 @@ export function Providers({
     [],
   );
 
+  const signInWithGoogle = useCallback(async () => {
+    const { email, displayName } = await authService.loginWithGoogle();
+    let createdProfile = false;
+
+    setStore((s) => {
+      const existing = s.users.find(
+        (u) => u.email.toLowerCase() === email,
+      );
+      if (existing) return s;
+
+      createdProfile = true;
+      const localPart = email.split("@")[0];
+      const { state } = registerUser(s, {
+        name: displayName || localPart,
+        email,
+        student_id: localPart.toUpperCase(),
+        department: "",
+      });
+      return state;
+    });
+
+    if (createdProfile) {
+      toast.info("Google profile linked", {
+        description:
+          "Finish your profile from the account page if any details are missing.",
+      });
+    }
+
+    setAuthEmail(email);
+  }, []);
+
   const register = useCallback(
     async (payload: {
       name: string;
@@ -390,7 +421,7 @@ export function Providers({
   const doUpdateProfile = useCallback(
     (
       updates: Partial<
-        Pick<User, "name" | "department" | "bio">
+        Pick<User, "name" | "student_id" | "department" | "bio">
       >,
     ) => {
       setStore((s) => {
@@ -510,6 +541,7 @@ export function Providers({
   const authValue: AuthContextValue = {
     currentUser,
     login,
+    signInWithGoogle,
     register,
     switchRole,
     logout,

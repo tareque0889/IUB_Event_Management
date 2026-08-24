@@ -20,6 +20,7 @@ export function roleHome(role: UserRole | undefined): string {
 export interface AuthContextValue {
   currentUser: User | null;
   login: (email: string, password: string) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
   register: (payload: {
     name: string;
     email: string;
