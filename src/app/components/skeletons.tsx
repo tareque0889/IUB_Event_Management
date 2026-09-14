@@ -7,6 +7,7 @@
  * for lazily-loaded routes and as first-load placeholders for lists.
  */
 import { Skeleton } from "./ui/skeleton";
+import { HamsterLoader } from "./Spinner";
 
 export function EventCardSkeleton() {
   return (
@@ -130,6 +131,9 @@ export function TableSkeleton({
 export function PageSkeleton() {
   return (
     <div className="p-6 max-w-6xl mx-auto" role="status" aria-busy="true">
+      <div className="mb-8 flex justify-center md:justify-start">
+        <HamsterLoader label="Loading page" fontSize={6} />
+      </div>
       <Skeleton className="h-3 w-20 mb-2" />
       <Skeleton className="h-8 w-64 mb-2" />
       <Skeleton className="h-4 w-40 mb-8" />
@@ -150,6 +154,9 @@ export function AuthPageSkeleton() {
       aria-busy="true"
     >
       <div className="w-full max-w-md space-y-4">
+        <div className="flex justify-center pb-2">
+          <HamsterLoader label="Loading form" fontSize={5.5} />
+        </div>
         <Skeleton className="h-8 w-48" />
         <Skeleton className="h-4 w-72" />
         <Skeleton className="h-10 w-full" />

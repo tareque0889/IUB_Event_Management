@@ -17,6 +17,7 @@ import { useAuth } from "../context/AuthContext";
 import { NotificationBell } from "./NotificationBell";
 import { SidebarContent } from "./SidebarContent";
 import { TopBarUserMenu } from "./TopBarUserMenu";
+import { ThemeToggle } from "./ThemeToggle";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { currentUser } = useAuth();
@@ -58,7 +59,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Menu className="size-4" />
           </Button>
           <div className="flex-1" />
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            <ThemeToggle className="text-[18px]" />
             <NotificationBell />
             <TopBarUserMenu />
           </div>

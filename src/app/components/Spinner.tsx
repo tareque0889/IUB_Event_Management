@@ -45,6 +45,27 @@ export function HamsterLoader({
   );
 }
 
+function LoadingWords({
+  prefix = "loading",
+  words = ["events", "clubs", "members", "dashboards", "updates"],
+}: {
+  prefix?: string;
+  words?: string[];
+}) {
+  return (
+    <div className="loader" aria-hidden="true">
+      <p className="loader__prefix">{prefix}</p>
+      <div className="words">
+        {words.concat(words[0] ?? "").map((word, index) => (
+          <span className="word" key={`${word}-${index}`}>
+            {word}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function LoadingScreen({
   label = "Loading...",
 }: {
@@ -52,12 +73,21 @@ export function LoadingScreen({
 }) {
   return (
     <div
-      className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center gap-6"
+      className="min-h-screen bg-background text-foreground flex items-center justify-center px-4"
       role="status"
       aria-live="polite"
     >
-      <HamsterLoader label={label} />
-      <p className="text-sm text-muted-foreground">{label}</p>
+      <div className="hamster-loader-card">
+        <div className="hamster-loader-content">
+          <HamsterLoader label={label} fontSize={12} />
+          <div className="hamster-loader-copy">
+            <LoadingWords prefix="loading" />
+            <p className="loading-screen-label text-sm text-muted-foreground">
+              {label}
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

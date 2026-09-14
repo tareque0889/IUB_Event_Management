@@ -9,6 +9,7 @@ import {
 } from "../components/ui/card";
 import { useAuth } from "../context/AuthContext";
 import { ComicButton } from "../components/ComicButton";
+import { ThemeToggle } from "../components/ThemeToggle";
 
 export function LandingPage() {
   const { currentUser } = useAuth();
@@ -27,6 +28,7 @@ export function LandingPage() {
             </span>
           </div>
           <div className="flex items-center gap-2">
+            <ThemeToggle className="text-[16px] mr-1" />
             <ComicButton
               to="/login"
               className="scale-75 origin-right"

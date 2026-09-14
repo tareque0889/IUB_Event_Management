@@ -18,6 +18,7 @@ import { roleHome } from "../context/AuthContext";
 import { AuthBrandPanel } from "../components/AuthBrandPanel";
 import { GoogleIcon } from "../components/GoogleIcon";
 import { ComicButton } from "../components/ComicButton";
+import { ThemeToggle } from "../components/ThemeToggle";
 import { isFirebaseConfigured } from "../lib/firebase";
 
 const DEMO_ACCOUNTS = [
@@ -95,7 +96,10 @@ export function LoginPage() {
     <main className="min-h-screen flex items-stretch">
       <AuthBrandPanel />
 
-      <div className="flex-1 flex items-center justify-center p-8 bg-background">
+      <div className="flex-1 flex items-center justify-center p-8 bg-background relative">
+        <div className="absolute top-6 right-6">
+          <ThemeToggle className="text-[16px]" />
+        </div>
         <div className="w-full max-w-sm">
           <div className="mb-8">
             <div className="flex items-center gap-2 mb-6 lg:hidden">
