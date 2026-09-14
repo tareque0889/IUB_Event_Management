@@ -28,22 +28,7 @@ export function LandingPage() {
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <ThemeToggle size={15} className="mr-1" />
-            <ComicButton
-              to="/login"
-              className="scale-75 origin-right"
-              innerColor="#ffffff"
-              ariaLabel="Login"
-            >
-              Login
-            </ComicButton>
-            <ComicButton
-              to={currentUser ? "/dashboard" : "/register"}
-              className="scale-75 origin-right"
-              ariaLabel={currentUser ? "Open Dashboard" : "Get Started"}
-            >
-              {currentUser ? "Dashboard" : "Get Started"}
-            </ComicButton>
+            <ThemeToggle size={15} />
           </div>
         </div>
       </header>
