@@ -17,6 +17,17 @@ The platform is designed for:
 
 Account registration is restricted to users with a valid `@iub.edu.bd` email address.
 
+## Demo mode credentials
+
+When Firebase configuration is absent, the application runs with seeded local data and no persistence. Use any of the accounts below to explore each role:
+
+| Role | Email | Password |
+| --- | --- | --- |
+| Super Admin | `admin@iub.edu.bd` | `Admin@12345` |
+| Club Admin | `shoikat.azad@iub.edu.bd` | `Club@12345` |
+| Coordinator | `coordinator@iub.edu.bd` | `Coord@12345` |
+| Student | `anika.rahman@iub.edu.bd` | `Student@12345` |
+
 ## Core features
 
 ### Authentication and profiles
@@ -409,17 +420,6 @@ python -m graphify query "firestore persist diff migrate"
 ```
 
 Outputs land in `graphify-out/` (git-ignored): `graph.html` (interactive, open in a browser), `GRAPH_REPORT.md` (god nodes, surprising connections, suggested questions) and `graph.json`. The current graph has ~630 nodes in 27 labelled communities; the hubs are `cn()`, `useAuth()`, `useData()`, `Providers()` and `StoreState`. If graphify is installed as an agent skill, `/graphify` runs the same pipeline from the AI assistant.
-
-## Demo mode credentials
-
-When Firebase configuration is absent, the application runs with seeded local data and no persistence.
-
-| Role | Email | Password |
-| --- | --- | --- |
-| Super Admin | `admin@iub.edu.bd` | `Admin@12345` |
-| Club Admin | `shoikat.azad@iub.edu.bd` | `Club@12345` |
-| Coordinator | `coordinator@iub.edu.bd` | `Coord@12345` |
-| Student | `anika.rahman@iub.edu.bd` | `Student@12345` |
 
 ## Local development
 
