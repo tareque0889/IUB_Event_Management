@@ -1,4 +1,5 @@
 import {
+  useMemo,
   useState
 } from "react";
 
@@ -16,6 +17,7 @@ import { useData } from "../context/DataContext";
 import { EventCard } from "../components/EventCard";
 import { EmptyState } from "../components/EmptyState";
 import { SearchInput } from "../components/SearchInput";
+import { useDebouncedValue } from "../hooks/useDebounce";
 
 
 export function EventFeedPage() {
@@ -23,29 +25,34 @@ export function EventFeedPage() {
   const [search, setSearch] = useState("");
   const [clubFilter, setClubFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  // The input stays controlled by `search`; filtering waits for typing to pause.
+  const query = useDebouncedValue(search.trim().toLowerCase(), 250);
 
-  const events = store.events
-    .filter((e) => e.status === "published")
-    .filter((e) => {
-      const q = search.toLowerCase();
-      return (
-        !q ||
-        e.title.toLowerCase().includes(q) ||
-        e.description.toLowerCase().includes(q) ||
-        e.tags.some((t) => t.toLowerCase().includes(q))
-      );
-    })
-    .filter(
-      (e) => clubFilter === "all" || e.club_id === clubFilter,
-    )
-    .filter((e) => {
-      if (statusFilter === "available")
-        return e.registered_count < e.capacity;
-      if (statusFilter === "full")
-        return e.registered_count >= e.capacity;
-      return true;
-    })
-    .sort((a, b) => a.date.localeCompare(b.date));
+  const events = useMemo(
+    () =>
+      store.events
+        .filter((e) => e.status === "published")
+        .filter((e) => {
+          return (
+            !query ||
+            e.title.toLowerCase().includes(query) ||
+            e.description.toLowerCase().includes(query) ||
+            e.tags.some((t) => t.toLowerCase().includes(query))
+          );
+        })
+        .filter(
+          (e) => clubFilter === "all" || e.club_id === clubFilter,
+        )
+        .filter((e) => {
+          if (statusFilter === "available")
+            return e.registered_count < e.capacity;
+          if (statusFilter === "full")
+            return e.registered_count >= e.capacity;
+          return true;
+        })
+        .sort((a, b) => a.date.localeCompare(b.date)),
+    [store.events, query, clubFilter, statusFilter],
+  );
 
   return (
     <div className="p-6 max-w-6xl mx-auto">

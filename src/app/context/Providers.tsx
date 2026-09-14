@@ -2,6 +2,7 @@ import React, {
   useState,
   useCallback,
   useEffect,
+  useMemo,
 } from "react";
 import { toast } from "sonner";
 import type {
@@ -38,11 +39,15 @@ import {
   sendDigest,
 } from "../lib/store";
 import { authService } from "../services/authService";
+import { persistAppState } from "../services/stateService";
 import {
-  fetchAppState,
-  persistAppState,
-} from "../services/stateService";
-import { registerLiveStore } from "../lib/liveStore";
+  migrateLegacyStore,
+  persistStoreDiff,
+  subscribeStore,
+  type StoreMode,
+} from "../services/firestore";
+import { isFirebaseConfigured } from "../lib/firebase";
+import { notifyLiveStore, registerLiveStore } from "../lib/liveStore";
 import {
   createEmptyStore,
   createDemoStore,
@@ -52,8 +57,9 @@ import {
   type AuthContextValue,
 } from "./AuthContext";
 import {
-  DataContext,
-  type DataContextValue,
+  ActionsContext,
+  StoreContext,
+  type DataActions,
 } from "./DataContext";
 import { LoadingScreen } from "../components/Spinner";
 export function Providers({
@@ -67,11 +73,15 @@ export function Providers({
   const storeRef = React.useRef<StoreState>(store);
   storeRef.current = store;
 
-  // Expose the live store to non-React modules (e.g. memberService) so member
-  // operations mutate the one source of truth and auto-persist.
+  // Expose the live store to non-React modules (e.g. memberService) and to
+  // useStoreSelector. Registered during render (idempotent) so children can
+  // read it on their very first render.
+  registerLiveStore(() => storeRef.current, setStore);
+
+  // Wake useStoreSelector subscribers after each committed store change.
   useEffect(() => {
-    registerLiveStore(() => storeRef.current, setStore);
-  }, []);
+    notifyLiveStore();
+  }, [store]);
 
   // The authenticated identity is an email. currentUser is derived by matching
   // that email to a users record in the store.
@@ -80,67 +90,178 @@ export function Providers({
   const [isBackendAvailable, setIsBackendAvailable] =
     useState(true);
 
-  const currentUser = authEmail
-    ? store.users.find(
-        (u) => u.email.toLowerCase() === authEmail.toLowerCase(),
-      ) ?? null
-    : null;
+  const currentUser = useMemo(
+    () =>
+      authEmail
+        ? store.users.find(
+            (u) => u.email.toLowerCase() === authEmail.toLowerCase(),
+          ) ?? null
+        : null,
+    [store.users, authEmail],
+  );
   const currentUserId = currentUser?.id ?? null;
 
-  // Restore / track the Firebase Auth session (no-op in demo mode).
+  // Restore / track the Firebase Auth session (no-op in demo mode). The
+  // first callback tells us whether a session was restored; Firestore
+  // listeners are only attached after that so protected collections aren't
+  // requested with the wrong identity.
+  const [authResolved, setAuthResolved] = useState(!isFirebaseConfigured);
   useEffect(() => {
     return authService.onAuthChange((email) => {
       setAuthEmail(email);
+      setAuthResolved(true);
     });
   }, []);
 
-  useEffect(() => {
-    let cancelled = false;
+  // Where the data is coming from: per-entity collections (normal) or the
+  // legacy single appState/main document (pre-migration / first run).
+  const [mode, setMode] = useState<StoreMode>("legacy");
+  // The last store known to match Firestore. Diffs are computed against it so
+  // we only write documents the user actually changed. `null` means "no
+  // trustworthy baseline yet" and blocks persistence entirely.
+  const persistedRef = React.useRef<StoreState | null>(null);
+  const migratingRef = React.useRef(false);
 
-    async function bootstrap() {
-      try {
-        const snapshot = await fetchAppState();
-        if (cancelled) return;
-        seedCounters(snapshot.store);
-        setStore(syncMemberCounts(snapshot.store));
-        setIsBackendAvailable(true);
-      } catch (error) {
-        console.error("Failed to load Firebase state.", error);
-        const demoStore = createDemoStore();
-        if (cancelled) return;
-        setStore(demoStore);
-        setIsBackendAvailable(false);
-        toast.info("Firebase not configured — demo mode enabled", {
-          description:
-            "Using local seeded demo data for login and browsing.",
-        });
-      } finally {
-        if (!cancelled) setIsBootstrapping(false);
-      }
+  const bootedRef = React.useRef(false);
+
+  // Profile created during register / Google sign-in. The identity change
+  // re-subscribes Firestore, and the incoming snapshot would otherwise wipe
+  // the optimistic local user; it is re-applied on top of that snapshot and
+  // persisted by the normal diff (or migration).
+  const pendingProfileRef = React.useRef<Parameters<typeof registerUser>[1] | null>(null);
+
+  const applyPendingProfile = useCallback((base: StoreState): StoreState => {
+    const profile = pendingProfileRef.current;
+    if (!profile) return base;
+    const email = profile.email.toLowerCase();
+    if (base.users.some((u) => u.email.toLowerCase() === email)) {
+      pendingProfileRef.current = null;
+      return base;
     }
-
-    void bootstrap();
-
-    return () => {
-      cancelled = true;
-    };
+    return registerUser(base, profile).state;
   }, []);
 
+  // Live subscription to Firestore. First emission comes from the IndexedDB
+  // cache (instant paint), later ones from the server / other users.
+  //
+  // Re-runs whenever the signed-in identity changes: onSnapshot listeners
+  // that were denied for a signed-out visitor are terminal, so login must
+  // attach fresh ones (and logout must drop the private data).
   useEffect(() => {
+    if (!authResolved) return;
+
+    if (!isFirebaseConfigured) {
+      bootedRef.current = true;
+      setStore(createDemoStore());
+      setIsBackendAvailable(false);
+      setIsBootstrapping(false);
+      toast.info("Firebase not configured — demo mode enabled", {
+        description:
+          "Using local seeded demo data for login and browsing.",
+      });
+      return;
+    }
+
+    const enterDemoMode = (error: unknown) => {
+      console.error("Failed to load Firebase state.", error);
+      bootedRef.current = true;
+      setStore(createDemoStore());
+      setIsBackendAvailable(false);
+      setIsBootstrapping(false);
+      toast.info("Could not reach Firebase — demo mode enabled", {
+        description:
+          "Using local seeded demo data for login and browsing.",
+      });
+    };
+
+    // No baseline until this subscription delivers; blocks the persist effect
+    // from diffing stale/partial data against the new identity's view.
+    persistedRef.current = null;
+
+    let unsubscribe: (() => void) | undefined;
+    try {
+      unsubscribe = subscribeStore(
+        ({ store: remote, mode: remoteMode, denied }) => {
+          seedCounters(remote);
+          const complete = denied.length === 0;
+          // Only trust the snapshot as a write baseline when every collection
+          // was readable; a signed-out view has empty private slices and must
+          // never be diffed against (it would delete/zero real data).
+          persistedRef.current = complete ? remote : null;
+          setMode(remoteMode);
+          // member_count is derived from memberships; skip the fix-up when that
+          // slice is a permission placeholder rather than real data.
+          const synced = complete ? syncMemberCounts(remote) : remote;
+          setStore(complete ? applyPendingProfile(synced) : synced);
+          setIsBackendAvailable(true);
+          bootedRef.current = true;
+          setIsBootstrapping(false);
+        },
+        (error) => {
+          // A failure after the first successful load is transient (offline
+          // etc.); the cache keeps serving. Only fall back before first paint.
+          if (bootedRef.current) {
+            console.error("Firestore subscription error.", error);
+            return;
+          }
+          enterDemoMode(error);
+        },
+      );
+    } catch (error) {
+      enterDemoMode(error);
+    }
+
+    return () => unsubscribe?.();
+  }, [authResolved, authEmail, applyPendingProfile]);
+
+  // Persist local changes. Runs synchronously after commit (layout effect) so
+  // the write reaches Firestore's local cache before any incoming snapshot
+  // could overwrite the optimistic state.
+  React.useLayoutEffect(() => {
     // Writes require an authenticated user (per Firestore rules), so only
     // persist when someone is signed in. This also avoids overwriting cloud
     // data from a logged-out browsing session.
     if (isBootstrapping || !isBackendAvailable || !authEmail) return;
-    // currentUser is auth-derived, so the shared snapshot stores no session id.
-    void persistAppState({ store, currentUserId: null }).catch((error) => {
+    const prev = persistedRef.current;
+    // No complete baseline from Firestore yet for this identity → wait.
+    if (prev === null || prev === store) return;
+    persistedRef.current = store;
+
+    const reportFailure = (error: unknown) => {
       console.error("Failed to persist Firebase state.", error);
       toast.error("Failed to sync changes", {
         description:
           "Your latest updates were not saved to the cloud.",
       });
-    });
+    };
+
+    if (mode === "legacy") {
+      // First signed-in session on a pre-migration database: copy the whole
+      // snapshot into the per-entity collections once. The collection
+      // listeners then take over and flip `mode` to "collections".
+      if (migratingRef.current) return;
+      migratingRef.current = true;
+      void migrateLegacyStore(store)
+        .then((stats) => {
+          console.info(
+            `Migrated appState/main → collections (${stats.sets} docs).`,
+          );
+        })
+        .catch((error) => {
+          migratingRef.current = false;
+          console.error("Collection migration failed; using legacy doc.", error);
+          // currentUser is auth-derived, so the shared snapshot stores no session id.
+          return persistAppState({ store, currentUserId: null }).catch(
+            reportFailure,
+          );
+        });
+      return;
+    }
+
+    void persistStoreDiff(prev, store).catch(reportFailure);
   }, [
     store,
+    mode,
     authEmail,
     isBootstrapping,
     isBackendAvailable,
@@ -156,26 +277,20 @@ export function Providers({
 
   const signInWithGoogle = useCallback(async () => {
     const { email, displayName } = await authService.loginWithGoogle();
-    let createdProfile = false;
+    const exists = storeRef.current.users.some(
+      (u) => u.email.toLowerCase() === email,
+    );
 
-    setStore((s) => {
-      const existing = s.users.find(
-        (u) => u.email.toLowerCase() === email,
-      );
-      if (existing) return s;
-
-      createdProfile = true;
+    if (!exists) {
       const localPart = email.split("@")[0];
-      const { state } = registerUser(s, {
+      pendingProfileRef.current = {
         name: displayName || localPart,
         email,
         student_id: localPart.toUpperCase(),
         department: "",
-      });
-      return state;
-    });
-
-    if (createdProfile) {
+      };
+      // Demo mode has no re-subscription, so apply immediately.
+      if (!isFirebaseConfigured) setStore((s) => applyPendingProfile(s));
       toast.info("Google profile linked", {
         description:
           "Finish your profile from the account page if any details are missing.",
@@ -183,7 +298,7 @@ export function Providers({
     }
 
     setAuthEmail(email);
-  }, []);
+  }, [applyPendingProfile]);
 
   const register = useCallback(
     async (payload: {
@@ -195,22 +310,16 @@ export function Providers({
     }) => {
       await authService.register(payload);
       const email = payload.email.trim().toLowerCase();
-      setStore((s) => {
-        const existing = s.users.find(
-          (u) => u.email.toLowerCase() === email,
-        );
-        if (existing) return s;
-        const { state } = registerUser(s, {
-          name: payload.name,
-          email,
-          student_id: payload.student_id,
-          department: payload.department,
-        });
-        return state;
-      });
+      pendingProfileRef.current = {
+        name: payload.name,
+        email,
+        student_id: payload.student_id,
+        department: payload.department,
+      };
+      if (!isFirebaseConfigured) setStore((s) => applyPendingProfile(s));
       setAuthEmail(email);
     },
-    [],
+    [applyPendingProfile],
   );
 
   const switchRole = useCallback((userId: string) => {
@@ -444,11 +553,12 @@ export function Providers({
       student_id: string;
       department: string;
     }) => {
-      const { state: next, userId } = registerUser(store, data);
+      // Read through the ref so this callback stays referentially stable.
+      const { state: next, userId } = registerUser(storeRef.current, data);
       setStore(next);
       return userId;
     },
-    [store],
+    [],
   );
 
   const doSubmitRoleRequest = useCallback(
@@ -538,53 +648,85 @@ export function Providers({
     });
   }, [currentUserId]);
 
-  const authValue: AuthContextValue = {
-    currentUser,
-    login,
-    signInWithGoogle,
-    register,
-    switchRole,
-    logout,
-    isStudent: currentUser?.role === "student",
-    isCoordinator: currentUser?.role === "coordinator",
-    isClubAdmin: currentUser?.role === "club_admin",
-    isSuperAdmin: currentUser?.role === "super_admin",
-  };
+  const authValue = useMemo<AuthContextValue>(
+    () => ({
+      currentUser,
+      login,
+      signInWithGoogle,
+      register,
+      switchRole,
+      logout,
+      isStudent: currentUser?.role === "student",
+      isCoordinator: currentUser?.role === "coordinator",
+      isClubAdmin: currentUser?.role === "club_admin",
+      isSuperAdmin: currentUser?.role === "super_admin",
+    }),
+    [currentUser, login, signInWithGoogle, register, switchRole, logout],
+  );
+
+  // Only the currentUserId-dependent callbacks change identity (on login /
+  // logout); everything else is stable, so ActionsContext consumers almost
+  // never re-render because of this object.
+  const actions = useMemo<DataActions>(
+    () => ({
+      doRegister,
+      doCancel,
+      doApplyClub,
+      doReviewMembership,
+      doRemoveMember,
+      doAssignRoles,
+      doUpdateMemberRole,
+      doCreateEvent,
+      doUpdateEvent,
+      doCancelEvent,
+      doDeleteEvent,
+      doDeleteClub,
+      doMarkNotificationsRead,
+      doUpdateProfile,
+      doRegisterUser,
+      doSubmitRoleRequest,
+      doReviewRoleRequest,
+      doChangeUserRole,
+      doCheckIn,
+      doToggleException,
+      doSendDigest,
+    }),
+    [
+      doRegister,
+      doCancel,
+      doApplyClub,
+      doReviewMembership,
+      doRemoveMember,
+      doAssignRoles,
+      doUpdateMemberRole,
+      doCreateEvent,
+      doUpdateEvent,
+      doCancelEvent,
+      doDeleteEvent,
+      doDeleteClub,
+      doMarkNotificationsRead,
+      doUpdateProfile,
+      doRegisterUser,
+      doSubmitRoleRequest,
+      doReviewRoleRequest,
+      doChangeUserRole,
+      doCheckIn,
+      doToggleException,
+      doSendDigest,
+    ],
+  );
 
   if (isBootstrapping) {
     return <LoadingScreen label="Loading campus hub..." />;
   }
 
-  const dataValue: DataContextValue = {
-    store,
-    doRegister,
-    doCancel,
-    doApplyClub,
-    doReviewMembership,
-    doRemoveMember,
-    doAssignRoles,
-    doUpdateMemberRole,
-    doCreateEvent,
-    doUpdateEvent,
-    doCancelEvent,
-    doDeleteEvent,
-    doDeleteClub,
-    doMarkNotificationsRead,
-    doUpdateProfile,
-    doRegisterUser,
-    doSubmitRoleRequest,
-    doReviewRoleRequest,
-    doChangeUserRole,
-    doCheckIn,
-    doToggleException,
-    doSendDigest,
-  };
-
   return (
     <AuthContext.Provider value={authValue}>
-      <DataContext.Provider value={dataValue}>
-        {children}
-      </DataContext.Provider>
+      <ActionsContext.Provider value={actions}>
+        <StoreContext.Provider value={store}>
+          {children}
+        </StoreContext.Provider>
+      </ActionsContext.Provider>
     </AuthContext.Provider>
   );
 }

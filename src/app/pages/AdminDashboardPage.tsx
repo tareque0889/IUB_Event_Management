@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import {
   useNavigate
 } from "react-router";
@@ -13,19 +14,16 @@ import { Button } from "../components/ui/button";
 import {
   formatEventTime
 } from "../lib/eventUtils";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip as RTooltip,
-  ResponsiveContainer,
-  Cell,
-} from "recharts";
 import { useAuth } from "../context/AuthContext";
 import { useData } from "../context/DataContext";
 import { StatCard } from "../components/StatCard";
 import { EmptyState } from "../components/EmptyState";
+import { Skeleton } from "../components/ui/skeleton";
+
+// recharts is ~300 KB; only load it when this dashboard actually renders a chart.
+const AdminEngagementChart = lazy(
+  () => import("../components/AdminEngagementChart"),
+);
 
 export function AdminDashboardPage() {
   const { store } = useData();
@@ -155,56 +153,16 @@ export function AdminDashboardPage() {
             description="Create an event to see engagement analytics."
           />
         ) : (
-          <ResponsiveContainer
-            width="100%"
-            height={Math.max(160, chartData.length * 46)}
+          <Suspense
+            fallback={
+              <Skeleton
+                className="w-full"
+                style={{ height: Math.max(160, chartData.length * 46) }}
+              />
+            }
           >
-            <BarChart
-              data={chartData}
-              layout="vertical"
-              margin={{ top: 0, right: 16, left: 0, bottom: 0 }}
-              barCategoryGap={12}
-            >
-              <XAxis type="number" hide />
-              <YAxis
-                type="category"
-                dataKey="name"
-                width={140}
-                tick={{ fontSize: 11, fontFamily: "monospace" }}
-                axisLine={false}
-                tickLine={false}
-              />
-              <RTooltip
-                cursor={{ fill: "var(--muted)" }}
-                contentStyle={{
-                  borderRadius: 12,
-                  border: "2px solid var(--border)",
-                  fontSize: 12,
-                  fontFamily: "monospace",
-                }}
-                formatter={(value: number, name: string) => [
-                  value,
-                  name === "registrations"
-                    ? "Registered"
-                    : "Checked in",
-                ]}
-              />
-              <Bar
-                dataKey="registrations"
-                radius={[0, 6, 6, 0]}
-                fill="var(--primary)"
-              >
-                {chartData.map((d) => (
-                  <Cell key={d.id} fill="var(--primary)" />
-                ))}
-              </Bar>
-              <Bar
-                dataKey="checkedIn"
-                radius={[0, 6, 6, 0]}
-                fill="var(--quaternary)"
-              />
-            </BarChart>
-          </ResponsiveContainer>
+            <AdminEngagementChart data={chartData} />
+          </Suspense>
         )}
         <div className="flex items-center gap-4 mt-3 text-xs font-mono text-muted-foreground">
           <span className="flex items-center gap-1.5">

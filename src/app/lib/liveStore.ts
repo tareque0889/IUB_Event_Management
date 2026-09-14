@@ -1,10 +1,11 @@
-/**
+﻿/**
  * liveStore.ts
  *
  * A tiny bridge that lets non-React modules (e.g. memberService) read and
- * mutate the single React `store` owned by Providers. Providers registers
- * the getter/setter once on mount; any mutation flows back through React
- * state and is auto-persisted to Firestore by Providers' persist effect.
+ * mutate the single React `store` owned by Providers, and lets components
+ * subscribe to store changes without going through React context
+ * (see useStoreSelector in DataContext). Providers registers the
+ * getter/setter once on mount and calls notifyLiveStore() after every commit.
  *
  * This keeps a single source of truth (the React store) while allowing the
  * service layer to stay call-compatible with the previous backend API.
@@ -13,9 +14,11 @@ import type { StoreState } from "./store";
 
 type Getter = () => StoreState;
 type Setter = (updater: (prev: StoreState) => StoreState) => void;
+type Listener = () => void;
 
 let getter: Getter | null = null;
 let setter: Setter | null = null;
+const listeners = new Set<Listener>();
 
 export function registerLiveStore(get: Getter, set: Setter): void {
   getter = get;
@@ -39,4 +42,17 @@ export function mutateLiveStore(
   const next = updater(getter());
   setter(() => next);
   return next;
+}
+
+/** Subscribe to store commits. Returns an unsubscribe function. */
+export function subscribeLiveStore(listener: Listener): () => void {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+}
+
+/** Called by Providers after each committed store change. */
+export function notifyLiveStore(): void {
+  for (const l of listeners) l();
 }

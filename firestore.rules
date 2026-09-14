@@ -2,15 +2,31 @@ rules_version = '2';
 
 // Firestore security rules for IUB Event Management.
 //
-// Data model: the whole app state lives in a single document `appState/main`.
-// - Reads are public (the app lets logged-out visitors browse events/clubs).
-// - Writes require an authenticated @iub.edu.bd user.
+// Data model: one collection per entity (doc id == entity id):
+//   users, clubs, events, registrations, memberships, notifications,
+//   roleRequests
+// plus the legacy single-document snapshot `appState/main`, which is only
+// read when the collections are still empty (pre-migration) and written as a
+// fallback if the migration fails.
 //
-// NOTE: because the client stores everything in one document and overwrites the
-// whole snapshot on each change, any authenticated @iub.edu.bd user can modify
-// all data. This is acceptable for a campus prototype but is NOT suitable for
-// untrusted multi-tenant production. To harden, split data into per-entity
-// collections and add per-field / per-role rules.
+// Read policy
+//   - clubs, events: public. Logged-out visitors can browse the event feed /
+//     club directory.
+//   - users: any signed-in @iub.edu.bd account. The client resolves the
+//     signed-in profile by matching the auth email against `users`; every
+//     in-app route is behind ProtectedRoute, so anonymous visitors never need
+//     it and exposing student ids / emails to the internet is avoided.
+//   - registrations, memberships, notifications, roleRequests: any signed-in
+//     @iub.edu.bd account. These contain per-student data.
+// Write policy
+//   - every collection: signed-in @iub.edu.bd account, and the document must
+//     keep its `id` field equal to the document id.
+//
+// NOTE: the client still applies business rules locally and writes the
+// resulting documents, so any authenticated @iub.edu.bd user can technically
+// modify any document. That matches the previous single-document trust
+// model. Tightening to per-role rules (e.g. only the club admin may write a
+// club's events) is the next hardening step now that data is per-entity.
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -20,6 +36,52 @@ service cloud.firestore {
         && request.auth.token.email.matches('.*@iub[.]edu[.]bd$');
     }
 
+    // Documents carry their own id; keep it consistent with the path.
+    function idMatches(docId) {
+      return request.resource.data.id == docId;
+    }
+
+    function canWrite(docId) {
+      return isIubUser() && (request.method == 'delete' || idMatches(docId));
+    }
+
+    // ── Public-read entities ──────────────────────────────────────────────
+    match /clubs/{docId} {
+      allow read: if true;
+      allow write: if canWrite(docId);
+    }
+    match /events/{docId} {
+      allow read: if true;
+      allow write: if canWrite(docId);
+    }
+
+    // ── Signed-in-only entities ───────────────────────────────────────────
+    // Personal data (student_id, email): never readable anonymously.
+    match /users/{docId} {
+      allow read: if isIubUser();
+      allow write: if canWrite(docId);
+    }
+    match /registrations/{docId} {
+      allow read: if isIubUser();
+      allow write: if canWrite(docId);
+    }
+    match /memberships/{docId} {
+      allow read: if isIubUser();
+      allow write: if canWrite(docId);
+    }
+    match /notifications/{docId} {
+      allow read: if isIubUser();
+      allow write: if canWrite(docId);
+    }
+    match /roleRequests/{docId} {
+      allow read: if isIubUser();
+      allow write: if canWrite(docId);
+    }
+
+    // ── Legacy single-document snapshot ───────────────────────────────────
+    // Public read is only needed until the first signed-in session migrates
+    // it into the collections above. TODO(hardening): switch `read` to
+    // isIubUser() once the Firebase console shows the collections populated.
     match /appState/{docId} {
       allow read: if true;
       allow write: if isIubUser();

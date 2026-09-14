@@ -237,16 +237,67 @@ React + TypeScript frontend
            |
            +---- Firebase Authentication
            |
-           +---- Cloud Firestore
+           +---- Cloud Firestore (one collection per entity, live onSnapshot)
            |       |
-           |       +---- appState/main
+           |       +---- users / clubs / events
+           |       +---- registrations / memberships / notifications / roleRequests
+           |       `---- appState/main   (legacy snapshot, read only until migrated)
            |
-           +---- Firebase Hosting
+           +---- Firebase Hosting (global CDN, immutable asset caching)
 ```
 
-The current academic prototype stores the application state as a snapshot in the Firestore document `appState/main`. Firebase Authentication provides signed-in identity, while application-level route guards and role checks control the user interface.
+Each entity array of the in-memory `StoreState` maps to its own Firestore collection (document id = entity id). The client subscribes to every collection with `onSnapshot`, so all users see changes live, and the IndexedDB persistent cache lets repeat visits paint instantly and keep working offline. Business rules stay pure functions in `src/app/lib/store.ts`; after each state change `persistStoreDiff(prev, next)` writes only the documents that actually changed in a single `writeBatch`.
 
-Firestore reads for this document are public so event and club information can be loaded, while writes require an authenticated `@iub.edu.bd` account. Because the prototype uses one shared state document, it should be migrated to per-entity collections with stricter role-based Firestore rules before use as an untrusted production system.
+`clubs` and `events` are publicly readable so visitors can browse; `users`, `registrations`, `memberships`, `notifications` and `roleRequests` require a signed-in `@iub.edu.bd` account (every in-app route is behind `ProtectedRoute`, so anonymous visitors never need personal data). All writes require a signed-in `@iub.edu.bd` account and a document `id` that matches its path.
+
+### Migrating from the legacy `appState/main` document
+
+Older deployments kept the whole state in one document. Migration is automatic: the first signed-in user to load the app after deploy copies the snapshot into the collections (`migrateLegacyStore`) and the listeners switch over. To migrate from the CLI instead (admin credentials):
+
+```bash
+# Firebase console -> Project settings -> Service accounts -> Generate key
+export GOOGLE_APPLICATION_CREDENTIALS=/path/to/key.json
+node scripts/migrate-appstate.mjs --project iub-event-management --dry-run
+node scripts/migrate-appstate.mjs --project iub-event-management
+```
+
+## Performance notes
+
+| Area | What is in place | Where |
+| --- | --- | --- |
+| Data reads | One `onSnapshot` per collection; IndexedDB `persistentLocalCache` (multi-tab); auto long-polling fallback | `src/app/lib/firebase.ts`, `src/app/services/firestore.ts` |
+| Data writes | Per-entity diff → `writeBatch` (≤450 ops/batch) instead of rewriting the whole state | `src/app/services/firestore.ts` `persistStoreDiff` |
+| Indexes | Composite indexes for events (status+date, club_id+date), registrations (event_id+status, user_id+registered_at), memberships (club_id+status), notifications (user_id+created_at); large text fields excluded from indexing | `firestore.indexes.json` |
+| Re-renders | `StoreContext` / `ActionsContext` split; `useStoreSelector` (useSyncExternalStore + shallow equality); `React.memo` on `EventCard`, `ClubCard`, `StatCard`; O(1) index maps in `selectors.ts` | `src/app/context/DataContext.tsx`, `src/app/lib/selectors.ts` |
+| Input | `useDebouncedValue` (250 ms) on event/club/admin search | `src/app/hooks/useDebounce.ts` |
+| Code splitting | `React.lazy` for every page except Landing/Login; recharts and the QR encoder load only inside their route/dialog; vendor chunks `vendor-react`, `vendor-firebase`, `vendor-radix` | `src/app/App.tsx`, `vite.config.ts` |
+| Assets | esbuild minify + Lightning CSS; `vite-plugin-image-optimizer`; `sharp` script emits WebP/AVIF siblings; `ImageWithFallback` adds `loading="lazy"`, `decoding="async"` and an Unsplash `srcSet` | `vite.config.ts`, `scripts/optimize-images.mjs`, `src/app/lib/imageUtils.ts` |
+| Delivery | Fonts preconnected + non-blocking preload; Hosting sends `immutable` for hashed assets, `must-revalidate` for `index.html`, `stale-while-revalidate` for images | `index.html`, `firebase.json` |
+| Skeletons | `Skeleton` primitive and composed `EventGridSkeleton`, `ClubGridSkeleton`, `StatRowSkeleton`, `TableSkeleton`, `PageSkeleton` used as Suspense fallbacks | `src/app/components/skeletons.tsx` |
+
+### Profiling re-renders
+
+1. Install the React Developer Tools extension and open the **Profiler** tab.
+2. In the Profiler settings enable **Record why each component rendered while profiling** and, under Components, **Highlight updates when components render**.
+3. Record while registering for an event on `/events`. Only the affected `EventCard`, the `NotificationBell` badge and the page header should flash; other cards must not.
+4. If a component re-renders on every store change, read its slice through `useStoreSelector` and dispatch through `useActions()` instead of `useData()`.
+
+### Regional and scale considerations
+
+- Firebase Hosting is already anycast + CDN; there is no load balancer to configure. Check the Firestore location with `node .\node_modules\firebase-tools\lib\bin\firebase.js firestore:databases:list` — `asia-south1` (Mumbai) is the closest region to Dhaka.
+- If Cloud Functions are added later, pin them to the same region: `setGlobalOptions({ region: "asia-south1", maxInstances: 10 })` and set `Cache-Control: public, max-age=300, s-maxage=600` on any public HTTP endpoint so the Hosting CDN caches it at the edge.
+- Firestore has no connection pool: the SDK multiplexes every listener over one stream per `Firestore` instance. The real limits are duplicate `initializeApp` calls (guarded with `getApps()`), listener count (7 collection listeners, never per-card) and write frequency (now one batch per user action).
+- When a collection outgrows "load everything" (roughly >500 events), replace that listener with a cursor query: `query(collection(db, "events"), where("status", "==", "published"), orderBy("date"), startAfter(lastDoc), limit(24))` — the composite index is already declared.
+
+### Bundle and dependency hygiene
+
+```powershell
+node .\node_modules\depcheck\bin\depcheck.js          # unused dependencies
+node .\node_modules\vite\bin\vite.js build            # chunk sizes are printed per file
+node scripts\optimize-images.mjs                       # regenerate WebP/AVIF for src/assets
+```
+
+`lighthouserc.json` holds performance budgets for `@lhci/cli`; run `npx lhci autorun` (or `node .\node_modules\@lhci\cli\src\cli.js autorun` on Windows) against `vite preview` after installing `@lhci/cli` to fail the build when the budgets regress.
 
 ## Demo mode credentials
 
@@ -305,10 +356,16 @@ Create a production build:
 npm run build
 ```
 
-Deploy the application using Firebase CLI:
+Deploy the application using Firebase CLI (hosting, rules and indexes):
 
 ```bash
 npm run deploy
+```
+
+Deploy only the Firestore rules and composite indexes:
+
+```bash
+firebase deploy --only firestore:rules,firestore:indexes --project iub-event-management
 ```
 
 On Windows systems where PowerShell blocks `.ps1` command shims, invoke the installed tools through Node:
@@ -324,17 +381,22 @@ node .\node_modules\firebase-tools\lib\bin\firebase.js deploy --project iub-even
 ```text
 IUB_Event_Management/
 |-- public/                  Static assets
+|-- scripts/                 Image optimisation and Firestore migration scripts
 |-- src/
 |   |-- app/
-|   |   |-- components/     Shared UI and layout components
+|   |   |-- components/     Shared UI, skeletons and layout components
 |   |   |-- context/        Authentication and application-state providers
-|   |   |-- lib/            Store types, business rules, and helpers
+|   |   |-- hooks/          Reusable hooks (useDebounce)
+|   |   |-- lib/            Store types, business rules, selectors and helpers
 |   |   |-- pages/          Public, student, and administrative pages
-|   |   `-- services/       Firebase authentication and persistence
+|   |   `-- services/       Firebase authentication and Firestore persistence
+|   |-- assets/             Optimised raster images (JPEG + WebP + AVIF)
 |   `-- styles/             Global styles
 |-- .env.example            Firebase environment template
-|-- firebase.json           Hosting and Firestore configuration
-|-- firestore.rules         Firestore access rules
+|-- firebase.json           Hosting (cache headers) and Firestore configuration
+|-- firestore.rules         Firestore access rules (per collection)
+|-- firestore.indexes.json  Firestore composite indexes
+|-- lighthouserc.json       Lighthouse CI performance budgets
 |-- package.json            Scripts and dependencies
 `-- README.md
 ```

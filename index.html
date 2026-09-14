@@ -1,8 +1,6 @@
-
-  <!DOCTYPE html>
-  <html lang="en">
-    <head>
-      
+<!DOCTYPE html>
+<html lang="en">
+  <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>IUB Event & Club Management | Campus Hub</title>
@@ -10,15 +8,39 @@
       name="description"
       content="IUB Campus Hub helps students discover events, join clubs, and manage campus activities in one streamlined platform."
     />
-    <style>html, body { height: 100%; margin: 0; } #root { height: 100%; }</style>
-      
-    </head>
+    <meta name="theme-color" content="#ffffff" />
 
-    <body>
-      
-      <div id="root"></div>
-      <script type="module" src="/src/main.tsx"></script>
-      
-    </body>
-  </html>
-  
+    <!-- Open TCP/TLS early to the origins the first paint depends on. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://firestore.googleapis.com" />
+    <link rel="preconnect" href="https://identitytoolkit.googleapis.com" />
+    <link rel="dns-prefetch" href="https://images.unsplash.com" />
+
+    <!-- Non-blocking web fonts: preload the stylesheet, swap to a real
+         stylesheet once it arrives. display=swap keeps text visible. -->
+    <link
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      onload="this.onload=null;this.rel='stylesheet'"
+    />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      />
+    </noscript>
+
+    <style>
+      html, body { height: 100%; margin: 0; }
+      #root { height: 100%; }
+    </style>
+  </head>
+
+  <body>
+    <div id="root"></div>
+    <!-- type="module" scripts are deferred by default. -->
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

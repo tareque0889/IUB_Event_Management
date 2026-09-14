@@ -1,4 +1,5 @@
-@import './fonts.css';
+/* Web fonts are loaded from index.html (preconnect + non-blocking preload)
+   instead of a CSS @import so they never block first paint. */
 @import './tailwind.css';
 @import './theme.css';
 

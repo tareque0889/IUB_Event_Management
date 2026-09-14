@@ -1,3 +1,4 @@
+﻿import { memo, useCallback } from "react";
 import {
   useNavigate
 } from "react-router";
@@ -16,26 +17,32 @@ import type {
 } from "../lib/store";
 import { categoryColor } from "../lib/uiHelpers";
 import { useAuth } from "../context/AuthContext";
-import { useData } from "../context/DataContext";
+import { useStoreSelector } from "../context/DataContext";
+import { membershipFor } from "../lib/selectors";
 
-export function ClubCard({ club }: { club: Club }) {
-  const { store } = useData();
+/** Memoised; re-renders only when this club or the viewer's membership changes. */
+export const ClubCard = memo(function ClubCard({ club }: { club: Club }) {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
-  const membership = store.memberships.find(
-    (m) =>
-      m.user_id === currentUser?.id && m.club_id === club.id,
+  const membership = useStoreSelector(
+    (s) => membershipFor(s, currentUser?.id, club.id),
+    [currentUser?.id, club.id],
+  );
+  const open = useCallback(
+    () => navigate(`/clubs/${club.id}`),
+    [navigate, club.id],
   );
 
   return (
     <Card
       className="group overflow-hidden cursor-pointer hover:shadow-md transition-all duration-200 border-border"
-      onClick={() => navigate(`/clubs/${club.id}`)}
+      onClick={open}
     >
       <div className="h-32 overflow-hidden bg-muted">
         <ImageWithFallback
           src={club.cover_url}
           alt={club.name}
+          displayWidth={640}
           className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300"
         />
       </div>
@@ -75,5 +82,4 @@ export function ClubCard({ club }: { club: Club }) {
       </CardContent>
     </Card>
   );
-}
-
+});

@@ -1,6 +1,7 @@
 import {
   useState
 } from "react";
+import { useDebouncedValue } from "../hooks/useDebounce";
 
 import { format, parseISO } from "date-fns";
 import {
@@ -66,21 +67,19 @@ export function SuperAdminPage() {
   } = useData();
   const [tab, setTab] = useState("requests");
   const [search, setSearch] = useState("");
+  const q = useDebouncedValue(search.trim().toLowerCase(), 250);
 
   const pendingRoleRequests = store.roleRequests.filter(
     (r) => r.status === "pending",
   );
 
   const allEvents = store.events.filter((e) => {
-    const q = search.toLowerCase();
     return !q || e.title.toLowerCase().includes(q);
   });
   const allClubs = store.clubs.filter((c) => {
-    const q = search.toLowerCase();
     return !q || c.name.toLowerCase().includes(q);
   });
   const allUsers = store.users.filter((u) => {
-    const q = search.toLowerCase();
     return (
       !q ||
       u.name.toLowerCase().includes(q) ||

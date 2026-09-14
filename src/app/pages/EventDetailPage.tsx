@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import {
   useNavigate,
   useParams
@@ -43,11 +44,14 @@ import {
   recurrenceLabel,
   formatEventTime
 } from "../lib/eventUtils";
-import { QRCodeSVG } from "qrcode.react";
 import { useAuth } from "../context/AuthContext";
 import { useData } from "../context/DataContext";
 import { CapacityBar } from "../components/CapacityBar";
 import { EmptyState } from "../components/EmptyState";
+import { Skeleton } from "../components/ui/skeleton";
+
+// The QR encoder is only needed inside the check-in dialog.
+const CheckInQr = lazy(() => import("../components/CheckInQr"));
 
 export function EventDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -362,14 +366,17 @@ export function EventDetailPage() {
                         </DialogHeader>
                         <div className="flex flex-col items-center gap-4 py-4">
                           <div className="bg-white p-4 rounded-xl border-2 border-border">
-                            <QRCodeSVG
-                              value={checkInCode(
-                                event.id,
-                                myReg.id,
-                              )}
-                              size={200}
-                              level="M"
-                            />
+                            <Suspense
+                              fallback={<Skeleton className="size-[200px]" />}
+                            >
+                              <CheckInQr
+                                value={checkInCode(
+                                  event.id,
+                                  myReg.id,
+                                )}
+                                size={200}
+                              />
+                            </Suspense>
                           </div>
                           <p className="text-xs font-mono text-muted-foreground">
                             {currentUser?.name} · {event.title}

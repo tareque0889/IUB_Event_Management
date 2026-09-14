@@ -21,22 +21,23 @@ import type {
   Notification
 } from "../lib/store";
 import { useAuth } from "../context/AuthContext";
-import { useData } from "../context/DataContext";
+import { useActions, useStoreSelector } from "../context/DataContext";
+import { notificationsFor } from "../lib/selectors";
 
 export function NotificationBell() {
-  const { store, doMarkNotificationsRead } = useData();
+  const { doMarkNotificationsRead } = useActions();
   const { currentUser } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
-  const myNotifs = store.notifications
-    .filter((n) => n.user_id === currentUser?.id)
-    .sort((a, b) => b.created_at.localeCompare(a.created_at))
-    .slice(0, 8);
-
-  const unread = store.notifications.filter(
-    (n) => n.user_id === currentUser?.id && !n.is_read,
-  ).length;
+  // The bell is mounted on every page; subscribe only to this user's
+  // notifications (already sorted newest-first by the selector).
+  const mine = useStoreSelector(
+    (s) => notificationsFor(s, currentUser?.id),
+    [currentUser?.id],
+  );
+  const myNotifs = mine.slice(0, 8);
+  const unread = mine.reduce((n, x) => (x.is_read ? n : n + 1), 0);
 
   const notifIcon = (type: Notification["type"]) => {
     const map: Record<string, React.ElementType> = {

@@ -850,33 +850,47 @@ export const initialState: StoreState = {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+/**
+ * Collision-free id: `<prefix>_<counter>_<random>`. The counter keeps ids
+ * roughly chronological/readable; the random suffix guarantees two clients
+ * creating records concurrently (each entity is now its own Firestore
+ * document, so a shared id would silently overwrite) never collide.
+ */
+function uniqueSuffix(): string {
+  const c = globalThis.crypto;
+  if (c && typeof c.randomUUID === "function") {
+    return c.randomUUID().slice(0, 8);
+  }
+  return Math.random().toString(36).slice(2, 10);
+}
+
 let _notifCounter = 100;
 function newNotifId() {
-  return `notif_${++_notifCounter}`;
+  return `notif_${++_notifCounter}_${uniqueSuffix()}`;
 }
 let _regCounter = 100;
 function newRegId() {
-  return `reg_${++_regCounter}`;
+  return `reg_${++_regCounter}_${uniqueSuffix()}`;
 }
 let _memCounter = 100;
 function newMemId() {
-  return `mem_${++_memCounter}`;
+  return `mem_${++_memCounter}_${uniqueSuffix()}`;
 }
 let _evtCounter = 100;
 function newEvtId() {
-  return `event_${++_evtCounter}`;
+  return `event_${++_evtCounter}_${uniqueSuffix()}`;
 }
 let _userCounter = 100;
 function newUserId() {
-  return `user_${++_userCounter}`;
+  return `user_${++_userCounter}_${uniqueSuffix()}`;
 }
 let _rrCounter = 100;
 function newRoleReqId() {
-  return `rr_${++_rrCounter}`;
+  return `rr_${++_rrCounter}_${uniqueSuffix()}`;
 }
 let _clubCounter = 100;
 function newClubId() {
-  return `club_${++_clubCounter}`;
+  return `club_${++_clubCounter}_${uniqueSuffix()}`;
 }
 
 function superAdminIds(state: StoreState): string[] {

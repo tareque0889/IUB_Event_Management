@@ -1,3 +1,4 @@
+import { memo, useCallback } from "react";
 import {
   useNavigate
 } from "react-router";
@@ -23,29 +24,39 @@ import type {
   Event
 } from "../lib/store";
 import { useAuth } from "../context/AuthContext";
-import { useData } from "../context/DataContext";
+import { useStoreSelector } from "../context/DataContext";
+import { clubById, registrationFor } from "../lib/selectors";
 import { CapacityBar } from "./CapacityBar";
 
-export function EventCard({ event }: { event: Event }) {
-  const { store } = useData();
+/**
+ * Memoised: with N cards on the feed, a single registration used to
+ * re-render every card. Now a card only re-renders when its own event, club
+ * or the viewer's registration for it changes.
+ */
+export const EventCard = memo(function EventCard({ event }: { event: Event }) {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
-  const club = store.clubs.find((c) => c.id === event.club_id);
-  const myReg = store.registrations.find(
-    (r) =>
-      r.user_id === currentUser?.id && r.event_id === event.id,
+  const club = useStoreSelector((s) => clubById(s, event.club_id), [event.club_id]);
+  const myReg = useStoreSelector(
+    (s) => registrationFor(s, currentUser?.id, event.id),
+    [currentUser?.id, event.id],
   );
   const isFull = event.registered_count >= event.capacity;
+  const open = useCallback(
+    () => navigate(`/events/${event.id}`),
+    [navigate, event.id],
+  );
 
   return (
     <Card
       className="group overflow-hidden flex flex-col cursor-pointer hover:shadow-md transition-all duration-200 border-border"
-      onClick={() => navigate(`/events/${event.id}`)}
+      onClick={open}
     >
       <div className="relative h-44 overflow-hidden bg-muted">
         <ImageWithFallback
           src={event.poster_url}
           alt={event.title}
+          displayWidth={640}
           className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300"
         />
         <div className="absolute top-3 left-3 flex gap-1.5 flex-wrap">
@@ -122,5 +133,5 @@ export function EventCard({ event }: { event: Event }) {
       </CardFooter>
     </Card>
   );
-}
+});
 

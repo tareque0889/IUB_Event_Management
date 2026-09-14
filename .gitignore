@@ -1,4 +1,4 @@
-﻿node_modules
+node_modules
 dist
 .env
 .env.*
@@ -8,3 +8,6 @@ dist
 .firebase
 firebase-debug.log
 firestore-debug.log
+
+# Generated code knowledge graph (python -m graphify update .)
+graphify-out

@@ -1,4 +1,5 @@
 import {
+  useMemo,
   useState
 } from "react";
 
@@ -16,28 +17,34 @@ import { useData } from "../context/DataContext";
 import { ClubCard } from "../components/ClubCard";
 import { EmptyState } from "../components/EmptyState";
 import { SearchInput } from "../components/SearchInput";
+import { useDebouncedValue } from "../hooks/useDebounce";
 
 
 export function ClubDirectoryPage() {
   const { store } = useData();
   const [search, setSearch] = useState("");
   const [catFilter, setCatFilter] = useState("all");
+  const query = useDebouncedValue(search.trim().toLowerCase(), 250);
 
-  const categories = Array.from(
-    new Set(store.clubs.map((c) => c.category)),
+  const categories = useMemo(
+    () => Array.from(new Set(store.clubs.map((c) => c.category))),
+    [store.clubs],
   );
-  const clubs = store.clubs
-    .filter((c) => {
-      const q = search.toLowerCase();
-      return (
-        !q ||
-        c.name.toLowerCase().includes(q) ||
-        c.description.toLowerCase().includes(q)
-      );
-    })
-    .filter(
-      (c) => catFilter === "all" || c.category === catFilter,
-    );
+  const clubs = useMemo(
+    () =>
+      store.clubs
+        .filter((c) => {
+          return (
+            !query ||
+            c.name.toLowerCase().includes(query) ||
+            c.description.toLowerCase().includes(query)
+          );
+        })
+        .filter(
+          (c) => catFilter === "all" || c.category === catFilter,
+        ),
+    [store.clubs, query, catFilter],
+  );
 
   return (
     <div className="p-6 max-w-6xl mx-auto">

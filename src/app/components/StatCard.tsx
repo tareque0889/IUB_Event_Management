@@ -1,8 +1,7 @@
-import React from "react";
+import React, { memo } from "react";
 
-
-
-export function StatCard({
+/** Pure presentational card; memoised so dashboards re-render cheaply. */
+export const StatCard = memo(function StatCard({
   icon: Icon,
   label,
   value,
@@ -42,5 +41,5 @@ export function StatCard({
       </div>
     </div>
   );
-}
+});
 

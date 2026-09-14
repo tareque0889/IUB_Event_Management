@@ -15,10 +15,12 @@
  *   VITE_FIREBASE_MESSAGING_SENDER_ID=...
  *   VITE_FIREBASE_APP_ID=...
  */
-import { initializeApp, type FirebaseApp } from "firebase/app";
+import { getApps, initializeApp, type FirebaseApp } from "firebase/app";
 import { getAuth, type Auth } from "firebase/auth";
 import {
   initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
   type Firestore,
 } from "firebase/firestore";
 
@@ -52,13 +54,26 @@ let authInstance: Auth | null = null;
 let dbInstance: Firestore | null = null;
 
 if (isFirebaseConfigured) {
-  app = initializeApp(firebaseConfig as Record<string, string>);
+  // "Connection pooling" for Firestore = exactly one FirebaseApp + one
+  // Firestore instance per page. The SDK multiplexes every listener and write
+  // over a single WebChannel stream, so the only way to waste connections is
+  // to initialise twice (e.g. on Vite HMR). getApps() makes this idempotent.
+  app = getApps()[0] ?? initializeApp(firebaseConfig as Record<string, string>);
   authInstance = getAuth(app);
-  // ignoreUndefinedProperties lets us persist the store snapshot directly even
-  // though some optional fields (avatar, bio, role, exception_dates…) are
-  // undefined.
   dbInstance = initializeFirestore(app, {
+    // ignoreUndefinedProperties lets us persist the store snapshot directly
+    // even though some optional fields (avatar, bio, role, exception_dates…)
+    // are undefined.
     ignoreUndefinedProperties: true,
+    // IndexedDB cache: repeat visits paint from disk instantly, onSnapshot
+    // then reconciles with the server. Multi-tab manager keeps several open
+    // tabs consistent instead of failing with "already enabled" errors.
+    localCache: persistentLocalCache({
+      tabManager: persistentMultipleTabManager(),
+    }),
+    // Falls back to long-polling automatically on networks/proxies that
+    // block WebChannel streaming (common on campus Wi-Fi).
+    experimentalAutoDetectLongPolling: true,
   });
 }
 
