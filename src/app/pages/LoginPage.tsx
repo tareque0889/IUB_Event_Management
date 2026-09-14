@@ -98,7 +98,7 @@ export function LoginPage() {
 
       <div className="flex-1 flex items-center justify-center p-8 bg-background relative">
         <div className="absolute top-6 right-6">
-          <ThemeToggle className="text-[16px]" />
+          <ThemeToggle size={16} />
         </div>
         <div className="w-full max-w-sm">
           <div className="mb-8">

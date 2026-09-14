@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { cn } from "./ui/utils";
 
 /**
@@ -26,7 +26,14 @@ function getInitialDark(): boolean {
  * Animated sun/moon dark-mode switch. Toggling flips the `.dark` class on
  * <html> (which drives the theme tokens in theme.css) and persists the choice.
  */
-export function ThemeToggle({ className }: { className?: string }) {
+export function ThemeToggle({
+  className,
+  size = 16,
+}: {
+  className?: string;
+  /** Overall switch size in px (drives the internal em-based layout). */
+  size?: number;
+}) {
   const [dark, setDark] = useState<boolean>(getInitialDark);
 
   useEffect(() => {
@@ -42,7 +49,11 @@ export function ThemeToggle({ className }: { className?: string }) {
   }, [dark]);
 
   return (
-    <label className={cn("theme-switch", className)} title="Toggle dark mode">
+    <label
+      className={cn("theme-switch", className)}
+      title="Toggle dark mode"
+      style={{ "--toggle-size": `${size}px` } as CSSProperties}
+    >
       <input
         type="checkbox"
         className="theme-switch__checkbox"

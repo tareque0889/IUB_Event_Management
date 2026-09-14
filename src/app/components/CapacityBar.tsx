@@ -13,8 +13,8 @@ export function CapacityBar({
     Math.round((registered / capacity) * 100),
   );
   return (
-    <div className="space-y-1">
-      <div className="flex justify-between items-center">
+    <div className="space-y-1 w-full">
+      <div className="flex justify-between items-center gap-2">
         <span className="text-xs text-muted-foreground font-mono">
           {registered}/{capacity} seats
         </span>

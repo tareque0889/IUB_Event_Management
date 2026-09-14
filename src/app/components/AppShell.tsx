@@ -60,7 +60,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </Button>
           <div className="flex-1" />
           <div className="flex items-center gap-3">
-            <ThemeToggle className="text-[18px]" />
+            <ThemeToggle size={14} />
             <NotificationBell />
             <TopBarUserMenu />
           </div>
