@@ -11,3 +11,9 @@ firestore-debug.log
 
 # Generated code knowledge graph (python -m graphify update .)
 graphify-out
+
+# Playwright
+!.env.test
+test-results
+playwright-report
+blob-report

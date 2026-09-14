@@ -229,7 +229,8 @@ Only an authorized Club Admin or assigned Coordinator can manage an event for a 
 ### Tooling
 
 - graphify — local tree-sitter knowledge graph of the codebase (see [Code knowledge graph](#code-knowledge-graph-graphify))
-- depcheck, vite-plugin-image-optimizer, sharp, Lightning CSS, Lighthouse CI budgets
+- Playwright + axe-core — end-to-end and WCAG 2.1 AA tests (see [Testing](#testing))
+- Lighthouse, depcheck, vite-plugin-image-optimizer, sharp, Lightning CSS, Lighthouse CI budgets
 
 ### Source control
 
@@ -274,6 +275,12 @@ Two hardening steps remain open and are marked in `firestore.rules`:
 2. Any signed-in `@iub.edu.bd` account can currently write any document (the previous single-document trust model). Per-role rules — e.g. only a club's admin may write its events — are the natural next step now that data is per-entity.
 
 Firebase Hosting also sends `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy` and a restrictive `Permissions-Policy` on every response (`firebase.json`).
+
+The full attacker model, abuse paths and prioritised rule changes live in [`docs/security/THREAT_MODEL.md`](docs/security/THREAT_MODEL.md); the reasoning behind the current trust model is recorded in [ADR-0002](docs/adr/0002-client-side-business-rules-and-trust-model.md).
+
+### Public pages paint before data
+
+`Providers` no longer blocks the whole tree behind the Firestore bootstrap. Landing, login and register render immediately with an empty store; only `ProtectedRoute` shows the loading screen (and only while a restored session is still resolving its profile). Firebase Auth is created with `initializeAuth` and no popup resolver, so the 95 KB `__/auth/iframe.js` is fetched only when someone clicks *Continue with Google*. On a throttled mobile profile this moved the landing page's LCP from 7.7 s to 4.0 s and the login page from 6.5 s to 2.8 s (Lighthouse 12, see below).
 
 ### Migrating from the legacy `appState/main` document
 
@@ -330,6 +337,61 @@ node scripts\optimize-images.mjs                       # regenerate WebP/AVIF fo
 ```
 
 `lighthouserc.json` holds performance budgets for `@lhci/cli`; run `npx lhci autorun` (or `node .\node_modules\@lhci\cli\src\cli.js autorun` on Windows) against `vite preview` after installing `@lhci/cli` to fail the build when the budgets regress.
+
+### Lighthouse scores (production, 2026-09-14)
+
+`lighthouse` is a dev dependency; audit the live site with:
+
+```powershell
+$env:CHROME_PATH = "C:\Program Files\Google\Chrome\Application\chrome.exe"
+node .\node_modules\lighthouse\cli\index.js https://iub-event-management.web.app/ --output=json --output-path=report.json --chrome-flags="--headless=new"
+node .\node_modules\lighthouse\cli\index.js https://iub-event-management.web.app/ --preset=desktop --output=html --output-path=report.html --chrome-flags="--headless=new"
+```
+
+| Page / profile | Performance | Accessibility | Best practices | SEO | LCP |
+| --- | --- | --- | --- | --- | --- |
+| `/` mobile (Moto G4, slow 4G) | 65 → **77** | 92 → **100** | 100 | 91 → **100** | 7.7 s → **4.0 s** |
+| `/` desktop | 96 → **97** | 92 → **100** | 100 | 91 → **100** | 1.25 s → **0.97 s** |
+| `/login` mobile | 70 → **91** | 93 → **100** | 100 | 91 → **100** | 6.5 s → **2.8 s** |
+
+What moved the numbers: public pages no longer wait for the Firestore bootstrap, the Firebase Auth iframe is deferred to the Google button, `robots.txt` / `sitemap.xml` / `llms.txt` are real static files (the SPA rewrite used to answer `robots.txt` with `index.html`), and the contrast / heading / landmark / button-name issues listed under *Accessibility* below were fixed. The remaining mobile gap is the ~250 KB (Brotli) of JavaScript needed before first paint on a 1.6 Mbps connection; the next lever is an inline critical-CSS pass or moving `vendor-firebase` behind the login route. Source maps are intentionally not published (`build.sourcemap: false`), which Lighthouse reports as `valid-source-maps`.
+
+## Accessibility
+
+Target: WCAG 2.1 AA. Every Playwright test runs an [axe-core](https://github.com/dequelabs/axe-core) scan (`expectNoA11yViolations` in `e2e/fixtures.ts`) with the `wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa` rule tags, so a regression fails CI. Fixes shipped with the first audit:
+
+- **Colour contrast** — `--primary` is `#7C3AED` (5.7:1 on white; `#8B5CF6` was 4.2:1), `--quaternary` is `#047857` (5.5:1; `#34D399` was 1.9:1), sidebar and brand-panel secondary text use ≥ 85 % alpha, image tag overlays use `bg-black/75`.
+- **Names and labels** — icon-only buttons (`NotificationBell`) and every Radix `SelectTrigger` carry an `aria-label`; all register-form inputs are bound to their `<Label>` via `htmlFor`/`id` and have `autocomplete`.
+- **Landmarks and structure** — login, register and forgot-password pages are wrapped in `<main>`; `CardTitle` renders a `<div>` (as upstream shadcn/ui) so card titles no longer create out-of-order `h4` headings.
+- **Keyboard** — `EventCard` is `role="link"`, focusable, activates on Enter/Space and shows a visible focus ring.
+
+Transient Sonner toasts are excluded from the scan (`[data-sonner-toaster]`) because their rich-colour theme is owned by the library.
+
+## Testing
+
+End-to-end tests use [Playwright](https://playwright.dev) against the Vite dev server in `--mode test`. `.env.test` blanks every `VITE_FIREBASE_*` variable, so the app runs in **demo mode** (seeded data, no network) and the suite never touches the production Firestore project.
+
+```powershell
+node .\node_modules\playwright\cli.js install chromium   # once
+npm run test:e2e                                          # headless, chromium + Pixel 7 (public pages)
+npm run test:e2e:ui                                       # Playwright UI mode
+E2E_BASE_URL=https://iub-event-management.web.app npm run test:e2e -- public   # smoke the live site
+```
+
+| Spec | Covers |
+| --- | --- |
+| `e2e/public.spec.ts` | Landing / login / register render without a session and pass axe; non-IUB email is rejected client-side; anonymous visit to `/dashboard` redirects to `/login`; `robots.txt`, `sitemap.xml`, `llms.txt` are served |
+| `e2e/app.spec.ts` | Student login → dashboard; debounced event search; full registration flow (feed → detail → form → confirmed); club directory; coordinator / club admin / super admin land on their role home and are bounced from student-only routes; student cannot open `/superadmin` |
+
+Demo mode has no persisted session, so tests navigate in-app (sidebar links or `navigateInApp`, which drives React Router through the history API) instead of reloading. Traces and screenshots are kept only for failures under `test-results/` (git-ignored).
+
+## Architecture decisions and security docs
+
+- [`docs/adr/0001-per-entity-firestore-collections.md`](docs/adr/0001-per-entity-firestore-collections.md) — why `appState/main` was split into one collection per entity, the alternatives, and the consequences.
+- [`docs/adr/0002-client-side-business-rules-and-trust-model.md`](docs/adr/0002-client-side-business-rules-and-trust-model.md) — why business rules stay client-side for now and what the planned hardening path is.
+- [`docs/security/THREAT_MODEL.md`](docs/security/THREAT_MODEL.md) — trust boundaries, assets, attacker capabilities, abuse paths (privilege escalation via the `users.role` field, PII harvesting, registration tampering, legacy-doc exposure) and prioritised Firestore rule recommendations.
+
+These were produced with the [Tech Leads Club agent skills](https://github.com/tech-leads-club/agent-skills) `create-adr`, `security-threat-model`, `security-best-practices`, `perf-lighthouse`, `core-web-vitals`, `web-accessibility` and `playwright-skill`; the graphify graph below was used to check caller impact of the changes.
 
 ## Code knowledge graph (graphify)
 
@@ -429,7 +491,11 @@ node .\node_modules\firebase-tools\lib\bin\firebase.js deploy --project iub-even
 
 ```text
 IUB_Event_Management/
-|-- public/                  Static assets
+|-- docs/
+|   |-- adr/                 Architecture Decision Records
+|   `-- security/            Threat model
+|-- e2e/                     Playwright end-to-end + axe accessibility tests
+|-- public/                  Static assets, robots.txt, sitemap.xml, llms.txt
 |-- scripts/                 Image optimisation and Firestore migration scripts
 |-- src/
 |   |-- app/
@@ -443,10 +509,12 @@ IUB_Event_Management/
 |   `-- styles/             Global styles
 |-- graphify-out/           Generated code knowledge graph (git-ignored)
 |-- .env.example            Firebase environment template
+|-- .env.test               Blank Firebase vars -> demo mode for Playwright
 |-- firebase.json           Hosting (cache + security headers) and Firestore configuration
 |-- firestore.rules         Firestore access rules (per collection)
 |-- firestore.indexes.json  Firestore composite indexes
 |-- lighthouserc.json       Lighthouse CI performance budgets
+|-- playwright.config.ts    E2E configuration (Vite dev server in --mode test)
 |-- package.json            Scripts and dependencies
 `-- README.md
 ```

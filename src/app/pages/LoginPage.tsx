@@ -92,7 +92,7 @@ export function LoginPage() {
   }, [currentUser, navigate]);
 
   return (
-    <div className="min-h-screen flex items-stretch">
+    <main className="min-h-screen flex items-stretch">
       <AuthBrandPanel />
 
       <div className="flex-1 flex items-center justify-center p-8 bg-background">
@@ -215,7 +215,7 @@ export function LoginPage() {
 
         </div>
       </div>
-    </div>
+    </main>
   );
 }
 

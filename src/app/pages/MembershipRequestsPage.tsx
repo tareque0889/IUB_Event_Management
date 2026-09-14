@@ -119,7 +119,7 @@ export function MembershipRequestsPage() {
                   <div className="flex gap-2 shrink-0">
                     <Button
                       size="sm"
-                      className="bg-quaternary hover:bg-quaternary/80 text-foreground"
+                      className="bg-quaternary hover:bg-quaternary/90 text-white"
                       onClick={() =>
                         doReviewMembership(mem.id, "approved")
                       }

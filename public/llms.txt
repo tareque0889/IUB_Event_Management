@@ -1,0 +1,17 @@
+# IUB Event & Club Management System
+
+> Campus event and club management platform for Independent University, Bangladesh. Students discover events and clubs, register (with waitlists and QR check-in) and apply for memberships; coordinators, club admins and a super admin manage them. Access is restricted to @iub.edu.bd accounts.
+
+## Public pages
+
+- [Landing](https://iub-event-management.web.app/): overview of the platform
+- [Sign in](https://iub-event-management.web.app/login): email/password or Google (@iub.edu.bd only)
+- [Register](https://iub-event-management.web.app/register): create a student profile
+
+## Documentation
+
+- [Source code and README](https://github.com/tareque0889/IUB_Event_Management): architecture, roles, performance notes, threat model and ADRs
+
+## Optional
+
+- All other routes require authentication and are not intended for indexing.

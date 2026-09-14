@@ -61,7 +61,6 @@ import {
   StoreContext,
   type DataActions,
 } from "./DataContext";
-import { LoadingScreen } from "../components/Spinner";
 export function Providers({
   children,
 }: {
@@ -651,6 +650,7 @@ export function Providers({
   const authValue = useMemo<AuthContextValue>(
     () => ({
       currentUser,
+      isBootstrapping,
       login,
       signInWithGoogle,
       register,
@@ -661,7 +661,7 @@ export function Providers({
       isClubAdmin: currentUser?.role === "club_admin",
       isSuperAdmin: currentUser?.role === "super_admin",
     }),
-    [currentUser, login, signInWithGoogle, register, switchRole, logout],
+    [currentUser, isBootstrapping, login, signInWithGoogle, register, switchRole, logout],
   );
 
   // Only the currentUserId-dependent callbacks change identity (on login /
@@ -716,10 +716,10 @@ export function Providers({
     ],
   );
 
-  if (isBootstrapping) {
-    return <LoadingScreen label="Loading campus hub..." />;
-  }
-
+  // Public routes (landing, login, register) paint immediately with an empty
+  // store; only ProtectedRoute waits for the first snapshot. Blocking here
+  // pushed LCP on the landing page behind the Firestore round-trip (~7 s on
+  // a throttled mobile connection).
   return (
     <AuthContext.Provider value={authValue}>
       <ActionsContext.Provider value={actions}>

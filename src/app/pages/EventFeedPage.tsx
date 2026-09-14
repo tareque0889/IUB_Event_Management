@@ -85,7 +85,7 @@ export function EventFeedPage() {
           value={clubFilter}
           onValueChange={setClubFilter}
         >
-          <SelectTrigger className="w-[180px] bg-card border-border">
+          <SelectTrigger className="w-[180px] bg-card border-border" aria-label="Filter by club">
             <SelectValue placeholder="All clubs" />
           </SelectTrigger>
           <SelectContent>
@@ -101,7 +101,7 @@ export function EventFeedPage() {
           value={statusFilter}
           onValueChange={setStatusFilter}
         >
-          <SelectTrigger className="w-[140px] bg-card border-border">
+          <SelectTrigger className="w-[140px] bg-card border-border" aria-label="Filter by availability">
             <SelectValue placeholder="Availability" />
           </SelectTrigger>
           <SelectContent>

@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+Allow: /login
+Allow: /register
+Disallow: /dashboard
+Disallow: /events
+Disallow: /clubs
+Disallow: /notifications
+Disallow: /profile
+Disallow: /coordinator
+Disallow: /admin/
+Disallow: /superadmin
+
+Sitemap: https://iub-event-management.web.app/sitemap.xml

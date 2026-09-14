@@ -49,8 +49,19 @@ export const EventCard = memo(function EventCard({ event }: { event: Event }) {
 
   return (
     <Card
-      className="group overflow-hidden flex flex-col cursor-pointer hover:shadow-md transition-all duration-200 border-border"
+      className="group overflow-hidden flex flex-col cursor-pointer hover:shadow-md transition-all duration-200 border-border focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
       onClick={open}
+      // The whole card is the click target; expose it to keyboard and
+      // screen-reader users as a link to the event (WCAG 2.1.1 / 4.1.2).
+      role="link"
+      tabIndex={0}
+      aria-label={`${event.title} — view event`}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          open();
+        }
+      }}
     >
       <div className="relative h-44 overflow-hidden bg-muted">
         <ImageWithFallback
@@ -63,7 +74,7 @@ export const EventCard = memo(function EventCard({ event }: { event: Event }) {
           {event.tags.slice(0, 2).map((tag) => (
             <span
               key={tag}
-              className="text-[10px] font-mono font-medium px-2 py-0.5 rounded bg-black/50 text-white backdrop-blur-sm"
+              className="text-[10px] font-mono font-medium px-2 py-0.5 rounded bg-black/75 text-white backdrop-blur-sm"
             >
               {tag}
             </span>
@@ -74,7 +85,7 @@ export const EventCard = memo(function EventCard({ event }: { event: Event }) {
             <span
               className={`text-[10px] font-mono font-medium px-2 py-0.5 rounded ${
                 myReg.status === "registered"
-                  ? "bg-quaternary text-foreground"
+                  ? "bg-quaternary text-white"
                   : "bg-accent text-foreground"
               }`}
             >

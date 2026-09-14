@@ -19,6 +19,12 @@ export function roleHome(role: UserRole | undefined): string {
 
 export interface AuthContextValue {
   currentUser: User | null;
+  /**
+   * True until the first store snapshot (or the demo fallback) has arrived.
+   * Public pages render immediately; ProtectedRoute waits on this so a
+   * restored session isn't bounced to /login before its profile loads.
+   */
+  isBootstrapping: boolean;
   login: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   register: (payload: {

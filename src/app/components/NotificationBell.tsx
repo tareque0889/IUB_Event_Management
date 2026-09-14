@@ -63,8 +63,11 @@ export function NotificationBell() {
           variant="ghost"
           size="icon"
           className="relative"
+          aria-label={
+            unread > 0 ? `Notifications, ${unread} unread` : "Notifications"
+          }
         >
-          <Bell className="size-4" />
+          <Bell className="size-4" aria-hidden="true" />
           {unread > 0 && (
             <span className="absolute -top-0.5 -right-0.5 size-4 rounded-full bg-accent text-accent-foreground text-[10px] font-bold flex items-center justify-center">
               {unread > 9 ? "9+" : unread}

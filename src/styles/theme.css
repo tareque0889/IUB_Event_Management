@@ -8,7 +8,8 @@
   --card-foreground: #1E293B;
   --popover: #FFFFFF;
   --popover-foreground: #1E293B;
-  --primary: #8B5CF6;
+  /* violet-600: 5.7:1 on white (WCAG AA for 12 px badge text; #8B5CF6 was 4.23:1) */
+  --primary: #7C3AED;
   --primary-foreground: #FFFFFF;
   --secondary: #F472B6;
   --secondary-foreground: #1E293B;
@@ -33,7 +34,8 @@
   --chart-5: #EF4444;
   --radius: 1rem;
   --tertiary: #FBBF24;
-  --quaternary: #34D399;
+  /* emerald-700: 5.5:1 on white so "success" text passes AA (#34D399 was 1.9:1) */
+  --quaternary: #047857;
   --sidebar: #6D28D9;
   --sidebar-foreground: #EDE9FE;
   --sidebar-primary: #FBBF24;

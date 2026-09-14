@@ -52,7 +52,7 @@ export function SidebarContent({ onClose }: { onClose?: () => void }) {
             >
               IUB Campus
             </p>
-            <p className="text-[10px] text-sidebar-foreground/50 font-mono uppercase tracking-wide">
+            <p className="text-[10px] text-sidebar-foreground/85 font-mono uppercase tracking-wide">
               Event & Club Hub
             </p>
           </div>
@@ -83,7 +83,7 @@ export function SidebarContent({ onClose }: { onClose?: () => void }) {
         {isCoordinator && coordinatorClubs.length > 0 && (
           <>
             <div className="pt-4 pb-1 px-3">
-              <p className="text-[10px] font-mono font-medium text-sidebar-foreground/40 uppercase tracking-wider">
+              <p className="text-[10px] font-mono font-medium text-sidebar-foreground/85 uppercase tracking-wider">
                 Co-ordinator
               </p>
             </div>
@@ -104,7 +104,7 @@ export function SidebarContent({ onClose }: { onClose?: () => void }) {
         {isClubAdmin && myClub && (
           <>
             <div className="pt-4 pb-1 px-3">
-              <p className="text-[10px] font-mono font-medium text-sidebar-foreground/40 uppercase tracking-wider">
+              <p className="text-[10px] font-mono font-medium text-sidebar-foreground/85 uppercase tracking-wider">
                 Club Admin
               </p>
             </div>
@@ -139,7 +139,7 @@ export function SidebarContent({ onClose }: { onClose?: () => void }) {
         {isSuperAdmin && (
           <>
             <div className="pt-4 pb-1 px-3">
-              <p className="text-[10px] font-mono font-medium text-sidebar-foreground/40 uppercase tracking-wider">
+              <p className="text-[10px] font-mono font-medium text-sidebar-foreground/85 uppercase tracking-wider">
                 Administration
               </p>
             </div>
@@ -164,7 +164,7 @@ export function SidebarContent({ onClose }: { onClose?: () => void }) {
             <p className="text-xs font-semibold text-sidebar-foreground truncate">
               {currentUser?.name}
             </p>
-            <p className="text-[10px] text-sidebar-foreground/50 font-mono truncate">
+            <p className="text-[10px] text-sidebar-foreground/85 font-mono truncate">
               {currentUser?.email}
             </p>
           </div>

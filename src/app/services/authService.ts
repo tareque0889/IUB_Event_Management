@@ -10,6 +10,7 @@
  * user + role.
  */
 import {
+  browserPopupRedirectResolver,
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
   onAuthStateChanged,
@@ -131,7 +132,13 @@ class AuthService {
       throw new Error("Google sign-in requires Firebase configuration.");
     }
 
-    const result = await signInWithPopup(auth, createGoogleProvider());
+    // Resolver passed here (not at initializeAuth) so the auth iframe is only
+    // fetched when the user actually chooses Google sign-in.
+    const result = await signInWithPopup(
+      auth,
+      createGoogleProvider(),
+      browserPopupRedirectResolver,
+    );
     const email = result.user.email?.trim().toLowerCase();
     if (!email) {
       await signOut(auth);

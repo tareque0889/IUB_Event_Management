@@ -29,8 +29,12 @@ function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
 }
 
 function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
+  // A <div>, as in upstream shadcn/ui: card titles sit inside arbitrary page
+  // sections, so a fixed heading level (h4) broke the document outline
+  // (axe "heading-order"). Pass `asChild`-style headings from the page when
+  // the card title genuinely is a section heading.
   return (
-    <h4
+    <div
       data-slot="card-title"
       className={cn("leading-none font-bold", className)}
       {...props}

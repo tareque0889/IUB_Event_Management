@@ -73,7 +73,7 @@ export function ClubDirectoryPage() {
           ariaLabel="Search clubs"
         />
         <Select value={catFilter} onValueChange={setCatFilter}>
-          <SelectTrigger className="w-[160px] bg-card border-border">
+          <SelectTrigger className="w-[160px] bg-card border-border" aria-label="Filter by category">
             <SelectValue placeholder="Category" />
           </SelectTrigger>
           <SelectContent>

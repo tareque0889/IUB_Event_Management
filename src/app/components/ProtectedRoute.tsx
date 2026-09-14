@@ -5,6 +5,7 @@ import {
 
 import type { UserRole } from "../lib/store";
 import { useAuth, roleHome } from "../context/AuthContext";
+import { LoadingScreen } from "./Spinner";
 
 export function ProtectedRoute({
   children,
@@ -14,7 +15,11 @@ export function ProtectedRoute({
   /** Allowed role(s). When omitted, any authenticated user may enter. */
   role?: UserRole | UserRole[];
 }) {
-  const { currentUser } = useAuth();
+  const { currentUser, isBootstrapping } = useAuth();
+  // The session may already be restored while its profile is still loading.
+  if (!currentUser && isBootstrapping) {
+    return <LoadingScreen label="Loading campus hub..." />;
+  }
   if (!currentUser) return <Navigate to="/login" replace />;
 
   if (role) {

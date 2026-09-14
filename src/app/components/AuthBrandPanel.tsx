@@ -9,7 +9,7 @@ export function AuthBrandPanel() {
     <div className="hidden lg:flex flex-col justify-between w-[46%] max-w-[560px] bg-primary text-primary-foreground p-12 shrink-0">
       <div className="flex items-center gap-2.5">
         <BookOpen className="size-5" />
-        <span className="text-xs font-mono uppercase tracking-[0.2em] text-primary-foreground/70">
+        <span className="text-xs font-mono uppercase tracking-[0.2em] text-primary-foreground/90">
           IUB Campus Hub
         </span>
       </div>
@@ -31,7 +31,8 @@ export function AuthBrandPanel() {
         >
           IUB
         </p>
-        <p className="text-[11px] font-mono uppercase tracking-[0.25em] text-primary-foreground/60 mt-1">
+        {/* /90 alpha keeps ≥4.5:1 against --primary (WCAG AA); /60 was 3.0:1 */}
+        <p className="text-[11px] font-mono uppercase tracking-[0.25em] text-primary-foreground/90 mt-1">
           Independent University, Bangladesh
         </p>
       </div>

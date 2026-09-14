@@ -33,7 +33,7 @@ export function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-8 bg-background">
+    <main className="min-h-screen flex items-center justify-center p-8 bg-background">
       <div className="w-full max-w-sm">
         <button
           onClick={() => navigate("/login")}
@@ -90,7 +90,7 @@ export function ForgotPasswordPage() {
           </div>
         )}
       </div>
-    </div>
+    </main>
   );
 }
 

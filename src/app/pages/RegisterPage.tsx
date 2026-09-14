@@ -101,7 +101,7 @@ export function RegisterPage() {
   }, [currentUser, navigate]);
 
   return (
-    <div className="min-h-screen flex items-stretch">
+    <main className="min-h-screen flex items-stretch">
       <AuthBrandPanel />
 
       <div className="flex-1 flex items-center justify-center p-8 bg-background">
@@ -128,8 +128,10 @@ export function RegisterPage() {
           </div>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
-              <Label>Full Name</Label>
+              <Label htmlFor="reg-name">Full Name</Label>
               <Input
+                id="reg-name"
+                autoComplete="name"
                 placeholder="e.g. Anika Rahman"
                 value={form.name}
                 onChange={(e) =>
@@ -139,9 +141,11 @@ export function RegisterPage() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label>IUB Email</Label>
+              <Label htmlFor="reg-email">IUB Email</Label>
               <Input
+                id="reg-email"
                 type="email"
+                autoComplete="email"
                 placeholder="yourname@iub.edu.bd"
                 value={form.email}
                 onChange={(e) =>
@@ -152,8 +156,9 @@ export function RegisterPage() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label>Student ID</Label>
+                <Label htmlFor="reg-student-id">Student ID</Label>
                 <Input
+                  id="reg-student-id"
                   placeholder="e.g. 2321200"
                   value={form.studentId}
                   onChange={(e) =>
@@ -166,14 +171,16 @@ export function RegisterPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label>Department</Label>
+                <Label htmlFor="reg-department">Department</Label>
                 <Select
                   value={form.department}
                   onValueChange={(v) =>
                     setForm({ ...form, department: v })
                   }
                 >
-                  <SelectTrigger>
+                  {/* Radix renders a <button>; without an id/aria-label it has
+                      no accessible name (axe "button-name"). */}
+                  <SelectTrigger id="reg-department" aria-label="Department">
                     <SelectValue placeholder="Select" />
                   </SelectTrigger>
                   <SelectContent>
@@ -196,9 +203,11 @@ export function RegisterPage() {
               </div>
             </div>
             <div className="space-y-1.5">
-              <Label>Password</Label>
+              <Label htmlFor="reg-password">Password</Label>
               <Input
+                id="reg-password"
                 type="password"
+                autoComplete="new-password"
                 placeholder="Min. 8 characters"
                 value={form.password}
                 onChange={(e) =>
@@ -249,7 +258,7 @@ export function RegisterPage() {
           </p>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
 

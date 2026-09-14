@@ -16,7 +16,12 @@
  *   VITE_FIREBASE_APP_ID=...
  */
 import { getApps, initializeApp, type FirebaseApp } from "firebase/app";
-import { getAuth, type Auth } from "firebase/auth";
+import {
+  browserLocalPersistence,
+  indexedDBLocalPersistence,
+  initializeAuth,
+  type Auth,
+} from "firebase/auth";
 import {
   initializeFirestore,
   persistentLocalCache,
@@ -59,7 +64,13 @@ if (isFirebaseConfigured) {
   // over a single WebChannel stream, so the only way to waste connections is
   // to initialise twice (e.g. on Vite HMR). getApps() makes this idempotent.
   app = getApps()[0] ?? initializeApp(firebaseConfig as Record<string, string>);
-  authInstance = getAuth(app);
+  // initializeAuth without a popupRedirectResolver: getAuth() eagerly loads
+  // the 95 KB <authDomain>/__/auth/iframe.js on every page load. Google
+  // sign-in passes browserPopupRedirectResolver explicitly instead
+  // (authService.loginWithGoogle), so the iframe only loads when clicked.
+  authInstance = initializeAuth(app, {
+    persistence: [indexedDBLocalPersistence, browserLocalPersistence],
+  });
   dbInstance = initializeFirestore(app, {
     // ignoreUndefinedProperties lets us persist the store snapshot directly
     // even though some optional fields (avatar, bio, role, exception_dates…)
