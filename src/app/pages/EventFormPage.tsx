@@ -113,7 +113,7 @@ export function EventFormPage() {
   }
 
   return (
-    <div className="p-6 max-w-2xl mx-auto">
+    <div className="p-4 sm:p-6 max-w-2xl mx-auto">
       <button
         onClick={() => navigate(-1)}
         className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors"
@@ -122,7 +122,7 @@ export function EventFormPage() {
       </button>
       <h1
         style={{ fontFamily: "'Outfit', sans-serif" }}
-        className="text-2xl font-semibold mb-6"
+        className="text-xl sm:text-2xl font-semibold mb-6"
       >
         {isEdit ? "Edit Event" : "Create New Event"}
       </h1>
@@ -151,7 +151,7 @@ export function EventFormPage() {
             required
           />
         </div>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="space-y-1.5">
             <Label>Date *</Label>
             <Input
@@ -197,7 +197,7 @@ export function EventFormPage() {
             required
           />
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="space-y-1.5">
             <Label>Max Capacity *</Label>
             <Input
@@ -236,7 +236,7 @@ export function EventFormPage() {
             </Select>
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="space-y-1.5">
             <Label>Repeats</Label>
             <Select
@@ -311,7 +311,7 @@ export function EventFormPage() {
             Comma-separated list of tags
           </p>
         </div>
-        <div className="flex gap-3 pt-2">
+        <div className="flex flex-wrap gap-3 pt-2">
           <Button
             type="submit"
             className="bg-primary hover:bg-primary/90"
@@ -332,4 +332,3 @@ export function EventFormPage() {
 }
 
 // ─── Attendee Roster ──────────────────────────────────────────────────────────
-

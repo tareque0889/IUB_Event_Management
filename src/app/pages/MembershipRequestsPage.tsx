@@ -57,14 +57,14 @@ export function MembershipRequestsPage() {
     }));
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
+    <div className="p-4 sm:p-6 max-w-4xl mx-auto">
       <div className="mb-6">
         <p className="text-xs font-mono text-muted-foreground uppercase tracking-widest mb-1">
           Club Admin
         </p>
         <h1
           style={{ fontFamily: "'Outfit', sans-serif" }}
-          className="text-2xl font-semibold"
+          className="text-xl sm:text-2xl font-semibold"
         >
           Membership Requests
         </h1>
@@ -94,32 +94,34 @@ export function MembershipRequestsPage() {
               {pending.map(({ user, ...mem }) => (
                 <div
                   key={mem.id}
-                  className="flex items-center gap-4 p-4 bg-card border border-border rounded-lg"
+                  className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4 p-4 bg-card border border-border rounded-lg"
                 >
-                  <Avatar className="size-10 shrink-0">
-                    <AvatarFallback className="bg-secondary text-secondary-foreground font-semibold">
-                      {getInitials(user?.name ?? "?")}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold">
-                      {user?.name}
-                    </p>
-                    <p className="text-xs text-muted-foreground font-mono">
-                      {user?.department} · {user?.student_id}
-                    </p>
-                    <p className="text-xs text-muted-foreground font-mono mt-0.5">
-                      Applied{" "}
-                      {format(
-                        parseISO(mem.applied_at),
-                        "d MMM yyyy",
-                      )}
-                    </p>
+                  <div className="flex items-center gap-4 min-w-0 flex-1">
+                    <Avatar className="size-10 shrink-0">
+                      <AvatarFallback className="bg-secondary text-secondary-foreground font-semibold">
+                        {getInitials(user?.name ?? "?")}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold truncate">
+                        {user?.name}
+                      </p>
+                      <p className="text-xs text-muted-foreground font-mono truncate">
+                        {user?.department} · {user?.student_id}
+                      </p>
+                      <p className="text-xs text-muted-foreground font-mono mt-0.5">
+                        Applied{" "}
+                        {format(
+                          parseISO(mem.applied_at),
+                          "d MMM yyyy",
+                        )}
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex gap-2 shrink-0">
+                  <div className="flex gap-2 w-full sm:w-auto shrink-0">
                     <Button
                       size="sm"
-                      className="bg-quaternary hover:bg-quaternary/90 text-white"
+                      className="flex-1 sm:flex-none bg-quaternary hover:bg-quaternary/90 text-white"
                       onClick={() =>
                         doReviewMembership(mem.id, "approved")
                       }
@@ -130,7 +132,7 @@ export function MembershipRequestsPage() {
                     <Button
                       size="sm"
                       variant="outline"
-                      className="text-destructive border-destructive/30 hover:bg-destructive/8"
+                      className="flex-1 sm:flex-none text-destructive border-destructive/30 hover:bg-destructive/8"
                       onClick={() =>
                         doReviewMembership(mem.id, "rejected")
                       }
@@ -154,7 +156,8 @@ export function MembershipRequestsPage() {
             />
           ) : (
             <div className="bg-card border border-border rounded-lg overflow-hidden">
-              <Table>
+              <div className="overflow-x-auto">
+                <Table>
                 <TableHeader>
                   <TableRow className="bg-muted/50">
                     <TableHead className="text-xs font-mono">
@@ -211,6 +214,7 @@ export function MembershipRequestsPage() {
                   ))}
                 </TableBody>
               </Table>
+              </div>
             </div>
           )}
         </TabsContent>

@@ -87,14 +87,14 @@ export function AdminDashboardPage() {
       : 0;
 
   return (
-    <div className="p-6 max-w-5xl mx-auto space-y-8">
+    <div className="p-4 sm:p-6 max-w-5xl mx-auto space-y-8">
       <div>
         <p className="text-xs font-mono text-muted-foreground uppercase tracking-widest mb-1">
           Club Admin
         </p>
         <h1
           style={{ fontFamily: "'Outfit', sans-serif" }}
-          className="text-3xl font-semibold"
+          className="text-2xl sm:text-3xl font-semibold"
         >
           {myClub.name}
         </h1>
@@ -103,7 +103,7 @@ export function AdminDashboardPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           icon={Users}
           label="Total Members"
@@ -212,7 +212,7 @@ export function AdminDashboardPage() {
       </div>
 
       <div>
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-4">
           <h2
             style={{ fontFamily: "'Outfit', sans-serif" }}
             className="text-lg font-semibold"
@@ -222,7 +222,7 @@ export function AdminDashboardPage() {
           <Button
             variant="ghost"
             size="sm"
-            className="text-primary text-xs"
+            className="text-primary text-xs w-full sm:w-auto"
             onClick={() => navigate("/admin/events")}
           >
             Manage all{" "}
@@ -254,22 +254,24 @@ export function AdminDashboardPage() {
               return (
                 <div
                   key={e.id}
-                  className="flex items-center gap-4 p-4 bg-card border border-border rounded-lg hover:border-primary/30 cursor-pointer transition-colors"
+                  className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4 p-4 bg-card border border-border rounded-lg hover:border-primary/30 cursor-pointer transition-colors"
                   onClick={() =>
                     navigate(`/admin/events/${e.id}/roster`)
                   }
                 >
-                  <CalendarDays className="size-4 text-muted-foreground shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">
-                      {e.title}
-                    </p>
-                    <p className="text-xs text-muted-foreground font-mono">
-                      {format(parseISO(e.date), "d MMM")} ·{" "}
-                      {formatEventTime(e.start_time)}
-                    </p>
+                  <div className="flex items-center gap-4 min-w-0 flex-1">
+                    <CalendarDays className="size-4 text-muted-foreground shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">
+                        {e.title}
+                      </p>
+                      <p className="text-xs text-muted-foreground font-mono">
+                        {format(parseISO(e.date), "d MMM")} ·{" "}
+                        {formatEventTime(e.start_time)}
+                      </p>
+                    </div>
                   </div>
-                  <div className="text-right shrink-0">
+                  <div className="w-full sm:w-auto text-left sm:text-right shrink-0">
                     <p className="text-sm font-mono font-semibold">
                       {regs}/{e.capacity}
                     </p>
@@ -288,4 +290,3 @@ export function AdminDashboardPage() {
 }
 
 // ─── Event Manage ─────────────────────────────────────────────────────────────
-

@@ -40,21 +40,21 @@ export function EventManagePage() {
     .sort((a, b) => b.date.localeCompare(a.date));
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
-      <div className="flex items-start justify-between mb-6">
+    <div className="p-4 sm:p-6 max-w-5xl mx-auto">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-6">
         <div>
           <p className="text-xs font-mono text-muted-foreground uppercase tracking-widest mb-1">
             {isCoordinator ? "Co-ordinator" : "Club Admin"}
           </p>
           <h1
             style={{ fontFamily: "'Outfit', sans-serif" }}
-            className="text-3xl font-semibold"
+            className="text-2xl sm:text-3xl font-semibold"
           >
             Manage Events
           </h1>
         </div>
         <Button
-          className="bg-primary hover:bg-primary/90"
+          className="w-full sm:w-auto bg-primary hover:bg-primary/90"
           onClick={() => navigate("/admin/events/new")}
         >
           <Plus className="size-4 mr-1.5" /> New Event
@@ -91,44 +91,46 @@ export function EventManagePage() {
             return (
               <div
                 key={e.id}
-                className="flex items-center gap-4 p-4 bg-card border border-border rounded-lg"
+                className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4 p-4 bg-card border border-border rounded-lg"
               >
-                <div className="w-14 h-14 rounded-md overflow-hidden bg-muted shrink-0">
-                  <ImageWithFallback
-                    src={e.poster_url}
-                    alt={e.title}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <p className="text-sm font-semibold truncate">
-                      {e.title}
-                    </p>
-                    <Badge
-                      variant="outline"
-                      className={`text-[10px] font-mono shrink-0 ${
-                        e.status === "published"
-                          ? "text-quaternary border-quaternary/40"
-                          : e.status === "cancelled"
-                            ? "text-destructive border-destructive/30"
-                            : "text-muted-foreground"
-                      }`}
-                    >
-                      {e.status}
-                    </Badge>
+                <div className="flex items-center gap-4 min-w-0 flex-1">
+                  <div className="w-14 h-14 rounded-md overflow-hidden bg-muted shrink-0">
+                    <ImageWithFallback
+                      src={e.poster_url}
+                      alt={e.title}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
-                  <p className="text-xs text-muted-foreground font-mono">
-                    {format(parseISO(e.date), "d MMM yyyy")} ·{" "}
-                    {formatEventTime(e.start_time)}
-                  </p>
-                  <p className="text-xs text-muted-foreground font-mono mt-0.5">
-                    {regs}/{e.capacity} registered
-                    {waitlisted > 0 &&
-                      ` · ${waitlisted} waitlisted`}
-                  </p>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <p className="text-sm font-semibold truncate">
+                        {e.title}
+                      </p>
+                      <Badge
+                        variant="outline"
+                        className={`text-[10px] font-mono shrink-0 ${
+                          e.status === "published"
+                            ? "text-quaternary border-quaternary/40"
+                            : e.status === "cancelled"
+                              ? "text-destructive border-destructive/30"
+                              : "text-muted-foreground"
+                        }`}
+                      >
+                        {e.status}
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground font-mono">
+                      {format(parseISO(e.date), "d MMM yyyy")} ·{" "}
+                      {formatEventTime(e.start_time)}
+                    </p>
+                    <p className="text-xs text-muted-foreground font-mono mt-0.5">
+                      {regs}/{e.capacity} registered
+                      {waitlisted > 0 &&
+                        ` · ${waitlisted} waitlisted`}
+                    </p>
+                  </div>
                 </div>
-                <div className="flex items-center gap-1 shrink-0">
+                <div className="flex items-center gap-1 w-full sm:w-auto justify-end shrink-0">
                   <Button
                     variant="ghost"
                     size="icon"

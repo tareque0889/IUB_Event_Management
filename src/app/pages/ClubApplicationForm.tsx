@@ -39,7 +39,7 @@ export function ClubApplicationForm() {
 
   if (!club) {
     return (
-      <div className="p-6 max-w-2xl mx-auto">
+      <div className="p-4 sm:p-6 max-w-2xl mx-auto">
         <EmptyState
           icon={AlertCircle}
           title="Club not found"
@@ -51,7 +51,7 @@ export function ClubApplicationForm() {
 
   if (existing) {
     return (
-      <div className="p-6 max-w-2xl mx-auto">
+      <div className="p-4 sm:p-6 max-w-2xl mx-auto">
         <EmptyState
           icon={BadgeCheck}
           title="Application already submitted"
@@ -87,7 +87,7 @@ export function ClubApplicationForm() {
   }
 
   return (
-    <div className="p-6 max-w-2xl mx-auto space-y-6">
+    <div className="p-4 sm:p-6 max-w-2xl mx-auto space-y-6">
       <button
         onClick={() => navigate(-1)}
         className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -101,7 +101,7 @@ export function ClubApplicationForm() {
         </p>
         <h1
           style={{ fontFamily: "'Outfit', sans-serif" }}
-          className="text-3xl font-semibold"
+          className="text-2xl sm:text-3xl font-semibold"
         >
           Apply to join {club.name}
         </h1>
@@ -160,7 +160,7 @@ export function ClubApplicationForm() {
               />
             </div>
           </CardContent>
-          <CardFooter className="gap-2">
+          <CardFooter className="gap-2 flex-wrap">
             <Button
               type="button"
               variant="outline"

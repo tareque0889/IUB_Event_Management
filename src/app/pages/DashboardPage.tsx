@@ -78,15 +78,15 @@ export function DashboardPage() {
   ).length;
 
   return (
-    <div className="p-6 max-w-5xl mx-auto space-y-8">
-      <div className="flex items-start justify-between gap-4">
+    <div className="p-4 sm:p-6 max-w-5xl mx-auto space-y-8">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-xs font-mono text-muted-foreground uppercase tracking-widest mb-1">
             Welcome back
           </p>
           <h1
             style={{ fontFamily: "'Outfit', sans-serif" }}
-            className="text-3xl font-semibold text-foreground"
+            className="text-2xl sm:text-3xl font-semibold text-foreground"
           >
             {currentUser?.name?.split(" ")[0]}
           </h1>
@@ -98,7 +98,7 @@ export function DashboardPage() {
         <Button
           variant="outline"
           size="sm"
-          className="shrink-0"
+          className="w-full sm:w-auto shrink-0"
           onClick={doSendDigest}
         >
           <MailCheck className="size-4 mr-2" /> Email me a
@@ -106,7 +106,7 @@ export function DashboardPage() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           icon={CalendarCheck}
           label="Registered"
@@ -131,7 +131,7 @@ export function DashboardPage() {
       </div>
 
       <div>
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-4">
           <h2
             style={{ fontFamily: "'Outfit', sans-serif" }}
             className="text-lg font-semibold"
@@ -141,7 +141,7 @@ export function DashboardPage() {
           <Button
             variant="ghost"
             size="sm"
-            className="text-primary text-xs"
+            className="text-primary text-xs w-full sm:w-auto"
             onClick={() => navigate("/events")}
           >
             Browse all{" "}
@@ -199,7 +199,7 @@ export function DashboardPage() {
       </div>
 
       <div>
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-4">
           <h2
             style={{ fontFamily: "'Outfit', sans-serif" }}
             className="text-lg font-semibold"
@@ -209,7 +209,7 @@ export function DashboardPage() {
           <Button
             variant="ghost"
             size="sm"
-            className="text-primary text-xs"
+            className="text-primary text-xs w-full sm:w-auto"
             onClick={() => navigate("/clubs")}
           >
             All clubs <ChevronRight className="size-3.5 ml-1" />
@@ -243,4 +243,3 @@ export function DashboardPage() {
 }
 
 // ─── Event Feed ───────────────────────────────────────────────────────────────
-

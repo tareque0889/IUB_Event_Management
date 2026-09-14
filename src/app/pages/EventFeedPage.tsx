@@ -55,14 +55,14 @@ export function EventFeedPage() {
   );
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
+    <div className="p-4 sm:p-6 max-w-6xl mx-auto">
       <div className="mb-6">
         <p className="text-xs font-mono text-muted-foreground uppercase tracking-widest mb-1">
           Discover
         </p>
         <h1
           style={{ fontFamily: "'Outfit', sans-serif" }}
-          className="text-3xl font-semibold"
+          className="text-2xl sm:text-3xl font-semibold"
         >
           Campus Events
         </h1>
@@ -132,4 +132,3 @@ export function EventFeedPage() {
 }
 
 // ─── Event Detail ─────────────────────────────────────────────────────────────
-

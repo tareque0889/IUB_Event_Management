@@ -65,14 +65,14 @@ export function ProfilePage() {
   if (!currentUser) return null;
 
   return (
-    <div className="p-6 max-w-3xl mx-auto">
+    <div className="p-4 sm:p-6 max-w-3xl mx-auto">
       <div className="mb-6">
         <p className="text-xs font-mono text-muted-foreground uppercase tracking-widest mb-1">
           Account
         </p>
         <h1
           style={{ fontFamily: "'Outfit', sans-serif" }}
-          className="text-3xl font-semibold"
+          className="text-2xl sm:text-3xl font-semibold"
         >
           My Profile
         </h1>
@@ -81,7 +81,7 @@ export function ProfilePage() {
       <div className="grid lg:grid-cols-[1fr_240px] gap-6">
         <Card className="border-border">
           <CardHeader>
-            <div className="flex items-start justify-between">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div className="flex items-center gap-4">
                 <Avatar className="size-16">
                   <AvatarFallback className="bg-primary text-primary-foreground text-xl font-bold">
@@ -110,6 +110,7 @@ export function ProfilePage() {
               <Button
                 variant="outline"
                 size="sm"
+                className="w-full sm:w-auto"
                 onClick={() => setEditing(!editing)}
               >
                 <Edit3 className="size-3.5 mr-1.5" />{" "}
@@ -191,7 +192,7 @@ export function ProfilePage() {
               </div>
             ) : (
               <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <p className="text-xs font-mono text-muted-foreground">
                       Student ID

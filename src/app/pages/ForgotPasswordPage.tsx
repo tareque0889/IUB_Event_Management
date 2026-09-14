@@ -43,7 +43,7 @@ export function ForgotPasswordPage() {
         </button>
         <h1
           style={{ fontFamily: "'Outfit', sans-serif" }}
-          className="text-2xl font-semibold mb-1"
+          className="text-xl sm:text-2xl font-semibold mb-1"
         >
           Reset password
         </h1>
@@ -95,4 +95,3 @@ export function ForgotPasswordPage() {
 }
 
 // ─── Student Dashboard ────────────────────────────────────────────────────────
-

@@ -48,7 +48,7 @@ export function EventRegistrationForm() {
 
   if (!event) {
     return (
-      <div className="p-6 max-w-2xl mx-auto">
+      <div className="p-4 sm:p-6 max-w-2xl mx-auto">
         <EmptyState
           icon={AlertCircle}
           title="Event not found"
@@ -93,7 +93,7 @@ export function EventRegistrationForm() {
   }
 
   return (
-    <div className="p-6 max-w-2xl mx-auto space-y-6">
+    <div className="p-4 sm:p-6 max-w-2xl mx-auto space-y-6">
       <button
         onClick={() => navigate(-1)}
         className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -107,7 +107,7 @@ export function EventRegistrationForm() {
         </p>
         <h1
           style={{ fontFamily: "'Outfit', sans-serif" }}
-          className="text-3xl font-semibold"
+          className="text-2xl sm:text-3xl font-semibold"
         >
           {event.title}
         </h1>
@@ -202,7 +202,7 @@ export function EventRegistrationForm() {
               />
             </div>
           </CardContent>
-          <CardFooter className="gap-2">
+          <CardFooter className="gap-2 flex-wrap">
             <Button
               type="button"
               variant="outline"

@@ -147,7 +147,7 @@ export function AttendeeRosterPage() {
 
   if (!event) {
     return (
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         <EmptyState
           icon={AlertCircle}
           title="Event not found"
@@ -158,7 +158,7 @@ export function AttendeeRosterPage() {
   }
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
+    <div className="p-4 sm:p-6 max-w-4xl mx-auto">
       <button
         onClick={() => navigate(-1)}
         className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors"
@@ -166,14 +166,14 @@ export function AttendeeRosterPage() {
         <ArrowLeft className="size-4" /> Back
       </button>
 
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-6">
         <div>
           <p className="text-xs font-mono text-muted-foreground mb-1">
             Attendee Roster
           </p>
           <h1
             style={{ fontFamily: "'Outfit', sans-serif" }}
-            className="text-2xl font-semibold"
+            className="text-xl sm:text-2xl font-semibold"
           >
             {event.title}
           </h1>
@@ -200,14 +200,14 @@ export function AttendeeRosterPage() {
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-4 mb-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-4">
         <CapacityBar
           registered={event.registered_count}
           capacity={event.capacity}
         />
         <Dialog open={scanOpen} onOpenChange={setScanOpen}>
           <DialogTrigger asChild>
-            <Button className="shrink-0 bg-primary hover:bg-primary/90">
+            <Button className="w-full sm:w-auto shrink-0 bg-primary hover:bg-primary/90">
               <CheckCircle2 className="size-4 mr-2" /> Scan
               Check-in
             </Button>
@@ -268,116 +268,118 @@ export function AttendeeRosterPage() {
 
         <TabsContent value="registered" className="mt-4">
           <div className="bg-card border border-border rounded-lg overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/50">
-                  <TableHead className="text-xs font-mono">
-                    #
-                  </TableHead>
-                  <TableHead className="text-xs font-mono">
-                    Name
-                  </TableHead>
-                  <TableHead className="text-xs font-mono">
-                    Department
-                  </TableHead>
-                  <TableHead className="text-xs font-mono">
-                    Registered At
-                  </TableHead>
-                  <TableHead className="text-xs font-mono text-right">
-                    Check-in
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {realRegistered.map((r, i) => {
-                  const user = store.users.find(
-                    (u) => u.id === r.user_id,
-                  );
-                  return (
-                    <TableRow key={r.id}>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead className="text-xs font-mono">
+                      #
+                    </TableHead>
+                    <TableHead className="text-xs font-mono">
+                      Name
+                    </TableHead>
+                    <TableHead className="text-xs font-mono">
+                      Department
+                    </TableHead>
+                    <TableHead className="text-xs font-mono">
+                      Registered At
+                    </TableHead>
+                    <TableHead className="text-xs font-mono text-right">
+                      Check-in
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {realRegistered.map((r, i) => {
+                    const user = store.users.find(
+                      (u) => u.id === r.user_id,
+                    );
+                    return (
+                      <TableRow key={r.id}>
+                        <TableCell className="text-xs font-mono text-muted-foreground">
+                          {i + 1}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Avatar className="size-6">
+                              <AvatarFallback className="bg-secondary text-secondary-foreground text-[10px]">
+                                {getInitials(user?.name ?? "?")}
+                              </AvatarFallback>
+                            </Avatar>
+                            <span className="text-sm font-medium">
+                              {user?.name}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-xs font-mono text-muted-foreground">
+                          {user?.department}
+                        </TableCell>
+                        <TableCell className="text-xs font-mono text-muted-foreground">
+                          {format(
+                            parseISO(r.registered_at),
+                            "d MMM · HH:mm",
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {r.checked_in ? (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-quaternary hover:text-quaternary h-7"
+                              onClick={() =>
+                                doCheckIn(r.id, false)
+                              }
+                            >
+                              <BadgeCheck className="size-3.5 mr-1" />{" "}
+                              In
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-7"
+                              onClick={() =>
+                                doCheckIn(r.id, true)
+                              }
+                            >
+                              Check in
+                            </Button>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                  {fakeAttendees.map((name, i) => (
+                    <TableRow key={`fake_${i}`}>
                       <TableCell className="text-xs font-mono text-muted-foreground">
-                        {i + 1}
+                        {realRegistered.length + i + 1}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Avatar className="size-6">
-                            <AvatarFallback className="bg-secondary text-secondary-foreground text-[10px]">
-                              {getInitials(user?.name ?? "?")}
+                            <AvatarFallback className="bg-muted text-muted-foreground text-[10px]">
+                              {getInitials(name)}
                             </AvatarFallback>
                           </Avatar>
                           <span className="text-sm font-medium">
-                            {user?.name}
+                            {name}
                           </span>
                         </div>
                       </TableCell>
                       <TableCell className="text-xs font-mono text-muted-foreground">
-                        {user?.department}
+                        CSE
                       </TableCell>
                       <TableCell className="text-xs font-mono text-muted-foreground">
-                        {format(
-                          parseISO(r.registered_at),
-                          "d MMM · HH:mm",
-                        )}
+                        —
                       </TableCell>
-                      <TableCell className="text-right">
-                        {r.checked_in ? (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-quaternary hover:text-quaternary h-7"
-                            onClick={() =>
-                              doCheckIn(r.id, false)
-                            }
-                          >
-                            <BadgeCheck className="size-3.5 mr-1" />{" "}
-                            In
-                          </Button>
-                        ) : (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-7"
-                            onClick={() =>
-                              doCheckIn(r.id, true)
-                            }
-                          >
-                            Check in
-                          </Button>
-                        )}
+                      <TableCell className="text-right text-xs font-mono text-muted-foreground">
+                        —
                       </TableCell>
                     </TableRow>
-                  );
-                })}
-                {fakeAttendees.map((name, i) => (
-                  <TableRow key={`fake_${i}`}>
-                    <TableCell className="text-xs font-mono text-muted-foreground">
-                      {realRegistered.length + i + 1}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Avatar className="size-6">
-                          <AvatarFallback className="bg-muted text-muted-foreground text-[10px]">
-                            {getInitials(name)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="text-sm font-medium">
-                          {name}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-xs font-mono text-muted-foreground">
-                      CSE
-                    </TableCell>
-                    <TableCell className="text-xs font-mono text-muted-foreground">
-                      —
-                    </TableCell>
-                    <TableCell className="text-right text-xs font-mono text-muted-foreground">
-                      —
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </div>
         </TabsContent>
 
@@ -391,53 +393,55 @@ export function AttendeeRosterPage() {
             />
           ) : (
             <div className="bg-card border border-border rounded-lg overflow-hidden">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted/50">
-                    <TableHead className="text-xs font-mono">
-                      Position
-                    </TableHead>
-                    <TableHead className="text-xs font-mono">
-                      Name
-                    </TableHead>
-                    <TableHead className="text-xs font-mono">
-                      Joined Waitlist
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {realWaitlisted.map((r, i) => {
-                    const user = store.users.find(
-                      (u) => u.id === r.user_id,
-                    );
-                    return (
-                      <TableRow key={r.id}>
-                        <TableCell className="text-xs font-mono text-accent font-semibold">
-                          #{i + 1}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Avatar className="size-6">
-                              <AvatarFallback className="bg-accent/10 text-foreground text-[10px]">
-                                {getInitials(user?.name ?? "?")}
-                              </AvatarFallback>
-                            </Avatar>
-                            <span className="text-sm font-medium">
-                              {user?.name}
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-xs font-mono text-muted-foreground">
-                          {format(
-                            parseISO(r.registered_at),
-                            "d MMM · HH:mm",
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/50">
+                      <TableHead className="text-xs font-mono">
+                        Position
+                      </TableHead>
+                      <TableHead className="text-xs font-mono">
+                        Name
+                      </TableHead>
+                      <TableHead className="text-xs font-mono">
+                        Joined Waitlist
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {realWaitlisted.map((r, i) => {
+                      const user = store.users.find(
+                        (u) => u.id === r.user_id,
+                      );
+                      return (
+                        <TableRow key={r.id}>
+                          <TableCell className="text-xs font-mono text-accent font-semibold">
+                            #{i + 1}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Avatar className="size-6">
+                                <AvatarFallback className="bg-accent/10 text-foreground text-[10px]">
+                                  {getInitials(user?.name ?? "?")}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span className="text-sm font-medium">
+                                {user?.name}
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-xs font-mono text-muted-foreground">
+                            {format(
+                              parseISO(r.registered_at),
+                              "d MMM · HH:mm",
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
             </div>
           )}
         </TabsContent>
@@ -447,4 +451,3 @@ export function AttendeeRosterPage() {
 }
 
 // ─── Membership Requests ──────────────────────────────────────────────────────
-

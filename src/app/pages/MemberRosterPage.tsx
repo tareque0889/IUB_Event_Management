@@ -253,15 +253,15 @@ export function MemberRosterPage() {
 
   // ── Render ───────────────────────────────────────────────────────────────
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <div className="mb-6 flex items-start justify-between gap-4">
+    <div className="p-4 sm:p-6 max-w-4xl mx-auto">
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-xs font-mono text-muted-foreground uppercase tracking-widest mb-1">
             Club Admin
           </p>
           <h1
             style={{ fontFamily: "'Outfit', sans-serif" }}
-            className="text-2xl font-semibold"
+            className="text-xl sm:text-2xl font-semibold"
           >
             Member Roster
           </h1>
@@ -271,9 +271,10 @@ export function MemberRosterPage() {
           </p>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 w-full sm:w-auto">
           <Button
             size="sm"
+            className="w-full sm:w-auto"
             onClick={() => setAddOpen(true)}
           >
             <Plus className="size-3.5 mr-1.5" /> Add Member
@@ -442,34 +443,35 @@ export function MemberRosterPage() {
         <EmptyState icon={Users} title="No members yet" description="" />
       ) : (
         <div className="bg-card border border-border rounded-lg overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-muted/50">
-                <TableHead className="text-xs font-mono">Member</TableHead>
-                <TableHead className="text-xs font-mono">Department</TableHead>
-                <TableHead className="text-xs font-mono">Role</TableHead>
-                <TableHead className="text-xs font-mono">Joined</TableHead>
-                <TableHead />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {members.map((mem) => (
-                <TableRow key={mem.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-2.5">
-                      <Avatar className="size-8">
-                        <AvatarFallback className="bg-secondary text-secondary-foreground text-xs font-semibold">
-                          {getInitials(mem.name ?? "?")}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="text-sm font-medium">{mem.name}</p>
-                        <p className="text-[10px] text-muted-foreground font-mono">
-                          {mem.student_id}
-                        </p>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50">
+                  <TableHead className="text-xs font-mono">Member</TableHead>
+                  <TableHead className="text-xs font-mono">Department</TableHead>
+                  <TableHead className="text-xs font-mono">Role</TableHead>
+                  <TableHead className="text-xs font-mono">Joined</TableHead>
+                  <TableHead />
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {members.map((mem) => (
+                  <TableRow key={mem.id}>
+                    <TableCell>
+                      <div className="flex items-center gap-2.5">
+                        <Avatar className="size-8">
+                          <AvatarFallback className="bg-secondary text-secondary-foreground text-xs font-semibold">
+                            {getInitials(mem.name ?? "?")}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="text-sm font-medium">{mem.name}</p>
+                          <p className="text-[10px] text-muted-foreground font-mono">
+                            {mem.student_id}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  </TableCell>
+                    </TableCell>
 
                   <TableCell className="text-xs font-mono text-muted-foreground">
                     {mem.department}
@@ -556,10 +558,11 @@ export function MemberRosterPage() {
                       )}
                     </div>
                   </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </div>
       )}
     </div>
@@ -569,4 +572,3 @@ export function MemberRosterPage() {
 // ─── Super Admin Console ──────────────────────────────────────────────────────
 
 // ─── Request Club Role (student → super admin) ────────────────────────────────
-

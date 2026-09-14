@@ -118,7 +118,7 @@ export function RegisterPage() {
             </div>
             <h1
               style={{ fontFamily: "'Outfit', sans-serif" }}
-              className="text-3xl font-semibold mb-1.5"
+              className="text-2xl sm:text-3xl font-semibold mb-1.5"
             >
               Create Account
             </h1>
@@ -154,7 +154,7 @@ export function RegisterPage() {
                 required
               />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label htmlFor="reg-student-id">Student ID</Label>
                 <Input

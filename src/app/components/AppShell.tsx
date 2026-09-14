@@ -49,7 +49,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </Sheet>
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <header className="h-14 bg-card border-b border-border flex items-center gap-3 px-4 shrink-0">
+        <header className="h-14 bg-card border-b border-border flex items-center gap-2 sm:gap-3 px-4 shrink-0">
           <Button
             variant="ghost"
             size="icon"
@@ -59,8 +59,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Menu className="size-4" />
           </Button>
           <div className="flex-1" />
-          <div className="flex items-center gap-3">
-            <ThemeToggle size={14} />
+          <div className="flex items-center gap-2 sm:gap-3">
+            <ThemeToggle size={12} />
             <NotificationBell />
             <TopBarUserMenu />
           </div>
@@ -74,4 +74,3 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 }
 
 // ─── Protected Route ──────────────────────────────────────────────────────────
-

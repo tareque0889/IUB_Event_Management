@@ -51,15 +51,15 @@ export function NotificationsPage() {
   };
 
   return (
-    <div className="p-6 max-w-3xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
+    <div className="p-4 sm:p-6 max-w-3xl mx-auto">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-6">
         <div>
           <p className="text-xs font-mono text-muted-foreground uppercase tracking-widest mb-1">
             Inbox
           </p>
           <h1
             style={{ fontFamily: "'Outfit', sans-serif" }}
-            className="text-3xl font-semibold"
+            className="text-2xl sm:text-3xl font-semibold"
           >
             Notifications
           </h1>
@@ -68,6 +68,7 @@ export function NotificationsPage() {
           <Button
             variant="outline"
             size="sm"
+            className="w-full sm:w-auto"
             onClick={doMarkNotificationsRead}
           >
             Mark all read
@@ -127,4 +128,3 @@ export function NotificationsPage() {
 }
 
 // ─── Admin Dashboard ──────────────────────────────────────────────────────────
-

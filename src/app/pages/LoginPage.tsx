@@ -113,7 +113,7 @@ export function LoginPage() {
             </div>
             <h1
               style={{ fontFamily: "'Outfit', sans-serif" }}
-              className="text-3xl font-semibold text-foreground mb-1.5"
+              className="text-2xl sm:text-3xl font-semibold text-foreground mb-1.5"
             >
               Welcome Back!
             </h1>
@@ -187,7 +187,7 @@ export function LoginPage() {
               <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-mono mb-2">
                 Demo accounts
               </p>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {DEMO_ACCOUNTS.map((acc) => (
                   <Button
                     key={acc.email}

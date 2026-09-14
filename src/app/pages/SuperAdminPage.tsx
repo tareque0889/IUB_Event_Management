@@ -93,14 +93,14 @@ export function SuperAdminPage() {
   ).length;
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-6">
+    <div className="p-4 sm:p-6 max-w-6xl mx-auto space-y-6">
       <div>
         <p className="text-xs font-mono text-muted-foreground uppercase tracking-widest mb-1">
           Super Admin
         </p>
         <h1
           style={{ fontFamily: "'Outfit', sans-serif" }}
-          className="text-3xl font-semibold"
+          className="text-2xl sm:text-3xl font-semibold"
         >
           Admin Console
         </h1>
@@ -109,7 +109,7 @@ export function SuperAdminPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           icon={Users}
           label="Total Users"
@@ -326,291 +326,297 @@ export function SuperAdminPage() {
 
         <TabsContent value="events" className="mt-4">
           <div className="bg-card border border-border rounded-lg overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/50">
-                  <TableHead className="text-xs font-mono">
-                    Event
-                  </TableHead>
-                  <TableHead className="text-xs font-mono">
-                    Club
-                  </TableHead>
-                  <TableHead className="text-xs font-mono">
-                    Date
-                  </TableHead>
-                  <TableHead className="text-xs font-mono">
-                    Status
-                  </TableHead>
-                  <TableHead className="text-xs font-mono">
-                    Regs
-                  </TableHead>
-                  <TableHead />
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {allEvents.map((e) => {
-                  const club = store.clubs.find(
-                    (c) => c.id === e.club_id,
-                  );
-                  const regs = store.registrations.filter(
-                    (r) => r.event_id === e.id,
-                  ).length;
-                  return (
-                    <TableRow key={e.id}>
-                      <TableCell>
-                        <p className="text-sm font-medium line-clamp-1">
-                          {e.title}
-                        </p>
-                      </TableCell>
-                      <TableCell className="text-xs font-mono text-muted-foreground">
-                        {club?.short_name}
-                      </TableCell>
-                      <TableCell className="text-xs font-mono text-muted-foreground">
-                        {format(parseISO(e.date), "d MMM yyyy")}
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant="outline"
-                          className={`text-[10px] font-mono ${
-                            e.status === "published"
-                              ? "text-foreground border-quaternary/40"
-                              : e.status === "cancelled"
-                                ? "text-destructive border-destructive/30"
-                                : "text-muted-foreground"
-                          }`}
-                        >
-                          {e.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-xs font-mono">
-                        {regs}
-                      </TableCell>
-                      <TableCell>
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="size-7 text-destructive"
-                            >
-                              <Trash2 className="size-3.5" />
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>
-                                Delete event?
-                              </DialogTitle>
-                              <DialogDescription>
-                                Permanently delete "{e.title}"
-                                and all its registrations.
-                              </DialogDescription>
-                            </DialogHeader>
-                            <DialogFooter>
-                              <Button variant="outline">
-                                Cancel
-                              </Button>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead className="text-xs font-mono">
+                      Event
+                    </TableHead>
+                    <TableHead className="text-xs font-mono">
+                      Club
+                    </TableHead>
+                    <TableHead className="text-xs font-mono">
+                      Date
+                    </TableHead>
+                    <TableHead className="text-xs font-mono">
+                      Status
+                    </TableHead>
+                    <TableHead className="text-xs font-mono">
+                      Regs
+                    </TableHead>
+                    <TableHead />
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {allEvents.map((e) => {
+                    const club = store.clubs.find(
+                      (c) => c.id === e.club_id,
+                    );
+                    const regs = store.registrations.filter(
+                      (r) => r.event_id === e.id,
+                    ).length;
+                    return (
+                      <TableRow key={e.id}>
+                        <TableCell>
+                          <p className="text-sm font-medium line-clamp-1">
+                            {e.title}
+                          </p>
+                        </TableCell>
+                        <TableCell className="text-xs font-mono text-muted-foreground">
+                          {club?.short_name}
+                        </TableCell>
+                        <TableCell className="text-xs font-mono text-muted-foreground">
+                          {format(parseISO(e.date), "d MMM yyyy")}
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant="outline"
+                            className={`text-[10px] font-mono ${
+                              e.status === "published"
+                                ? "text-foreground border-quaternary/40"
+                                : e.status === "cancelled"
+                                  ? "text-destructive border-destructive/30"
+                                  : "text-muted-foreground"
+                            }`}
+                          >
+                            {e.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-xs font-mono">
+                          {regs}
+                        </TableCell>
+                        <TableCell>
+                          <Dialog>
+                            <DialogTrigger asChild>
                               <Button
-                                variant="destructive"
-                                onClick={() =>
-                                  doDeleteEvent(e.id)
-                                }
+                                variant="ghost"
+                                size="icon"
+                                className="size-7 text-destructive"
                               >
-                                Delete
+                                <Trash2 className="size-3.5" />
                               </Button>
-                            </DialogFooter>
-                          </DialogContent>
-                        </Dialog>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>
+                                  Delete event?
+                                </DialogTitle>
+                                <DialogDescription>
+                                  Permanently delete "{e.title}"
+                                  and all its registrations.
+                                </DialogDescription>
+                              </DialogHeader>
+                              <DialogFooter>
+                                <Button variant="outline">
+                                  Cancel
+                                </Button>
+                                <Button
+                                  variant="destructive"
+                                  onClick={() =>
+                                    doDeleteEvent(e.id)
+                                  }
+                                >
+                                  Delete
+                                </Button>
+                              </DialogFooter>
+                            </DialogContent>
+                          </Dialog>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
           </div>
         </TabsContent>
 
         <TabsContent value="clubs" className="mt-4">
           <div className="bg-card border border-border rounded-lg overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/50">
-                  <TableHead className="text-xs font-mono">
-                    Club
-                  </TableHead>
-                  <TableHead className="text-xs font-mono">
-                    Category
-                  </TableHead>
-                  <TableHead className="text-xs font-mono">
-                    Admin
-                  </TableHead>
-                  <TableHead className="text-xs font-mono">
-                    Members
-                  </TableHead>
-                  <TableHead />
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {allClubs.map((c) => {
-                  const admin = store.users.find(
-                    (u) => u.id === c.admin_user_id,
-                  );
-                  return (
-                    <TableRow key={c.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <div className="size-8 rounded overflow-hidden bg-muted shrink-0">
-                            <ImageWithFallback
-                              src={c.cover_url}
-                              alt={c.name}
-                              className="w-full h-full object-cover"
-                            />
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead className="text-xs font-mono">
+                      Club
+                    </TableHead>
+                    <TableHead className="text-xs font-mono">
+                      Category
+                    </TableHead>
+                    <TableHead className="text-xs font-mono">
+                      Admin
+                    </TableHead>
+                    <TableHead className="text-xs font-mono">
+                      Members
+                    </TableHead>
+                    <TableHead />
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {allClubs.map((c) => {
+                    const admin = store.users.find(
+                      (u) => u.id === c.admin_user_id,
+                    );
+                    return (
+                      <TableRow key={c.id}>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <div className="size-8 rounded overflow-hidden bg-muted shrink-0">
+                              <ImageWithFallback
+                                src={c.cover_url}
+                                alt={c.name}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <p className="text-sm font-medium">
+                              {c.name}
+                            </p>
                           </div>
-                          <p className="text-sm font-medium">
-                            {c.name}
-                          </p>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-xs font-mono text-muted-foreground">
-                        {c.category}
-                      </TableCell>
-                      <TableCell className="text-xs font-mono text-muted-foreground">
-                        {admin?.name}
-                      </TableCell>
-                      <TableCell className="text-xs font-mono">
-                        {c.member_count}
-                      </TableCell>
-                      <TableCell>
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="size-7 text-destructive"
-                            >
-                              <Trash2 className="size-3.5" />
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>
-                                Remove club?
-                              </DialogTitle>
-                              <DialogDescription>
-                                Permanently remove "{c.name}",
-                                its events, and all memberships.
-                              </DialogDescription>
-                            </DialogHeader>
-                            <DialogFooter>
-                              <Button variant="outline">
-                                Cancel
-                              </Button>
+                        </TableCell>
+                        <TableCell className="text-xs font-mono text-muted-foreground">
+                          {c.category}
+                        </TableCell>
+                        <TableCell className="text-xs font-mono text-muted-foreground">
+                          {admin?.name}
+                        </TableCell>
+                        <TableCell className="text-xs font-mono">
+                          {c.member_count}
+                        </TableCell>
+                        <TableCell>
+                          <Dialog>
+                            <DialogTrigger asChild>
                               <Button
-                                variant="destructive"
-                                onClick={() =>
-                                  doDeleteClub(c.id)
-                                }
+                                variant="ghost"
+                                size="icon"
+                                className="size-7 text-destructive"
                               >
-                                Remove
+                                <Trash2 className="size-3.5" />
                               </Button>
-                            </DialogFooter>
-                          </DialogContent>
-                        </Dialog>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>
+                                  Remove club?
+                                </DialogTitle>
+                                <DialogDescription>
+                                  Permanently remove "{c.name}",
+                                  its events, and all memberships.
+                                </DialogDescription>
+                              </DialogHeader>
+                              <DialogFooter>
+                                <Button variant="outline">
+                                  Cancel
+                                </Button>
+                                <Button
+                                  variant="destructive"
+                                  onClick={() =>
+                                    doDeleteClub(c.id)
+                                  }
+                                >
+                                  Remove
+                                </Button>
+                              </DialogFooter>
+                            </DialogContent>
+                          </Dialog>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
           </div>
         </TabsContent>
 
         <TabsContent value="users" className="mt-4">
           <div className="bg-card border border-border rounded-lg overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/50">
-                  <TableHead className="text-xs font-mono">
-                    User
-                  </TableHead>
-                  <TableHead className="text-xs font-mono">
-                    Department
-                  </TableHead>
-                  <TableHead className="text-xs font-mono">
-                    Email
-                  </TableHead>
-                  <TableHead className="text-xs font-mono">
-                    Role / Change
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {allUsers.map((u) => (
-                  <TableRow key={u.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-2.5">
-                        <Avatar className="size-7">
-                          <AvatarFallback className="bg-secondary text-secondary-foreground text-xs">
-                            {getInitials(u.name)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="text-sm font-medium">
-                            {u.name}
-                          </p>
-                          <p className="text-[10px] text-muted-foreground font-mono">
-                            {u.student_id}
-                          </p>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-xs font-mono text-muted-foreground">
-                      {u.department}
-                    </TableCell>
-                    <TableCell className="text-xs font-mono text-muted-foreground">
-                      {u.email}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Badge
-                          variant="outline"
-                          className={`text-[10px] font-mono ${roleBadge(u.role)}`}
-                        >
-                          {u.role.replace("_", " ")}
-                        </Badge>
-                        <Select
-                          value={u.role}
-                          onValueChange={(v) =>
-                            doChangeUserRole(
-                              u.id,
-                              v as UserRole,
-                            )
-                          }
-                        >
-                          <SelectTrigger className="h-7 w-[130px] text-xs">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="student">
-                              Student
-                            </SelectItem>
-                            <SelectItem value="coordinator">
-                              Co-ordinator
-                            </SelectItem>
-                            <SelectItem value="club_admin">
-                              Club Admin
-                            </SelectItem>
-                            <SelectItem value="super_admin">
-                              Super Admin
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </TableCell>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead className="text-xs font-mono">
+                      User
+                    </TableHead>
+                    <TableHead className="text-xs font-mono">
+                      Department
+                    </TableHead>
+                    <TableHead className="text-xs font-mono">
+                      Email
+                    </TableHead>
+                    <TableHead className="text-xs font-mono">
+                      Role / Change
+                    </TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {allUsers.map((u) => (
+                    <TableRow key={u.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-2.5">
+                          <Avatar className="size-7">
+                            <AvatarFallback className="bg-secondary text-secondary-foreground text-xs">
+                              {getInitials(u.name)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="text-sm font-medium">
+                              {u.name}
+                            </p>
+                            <p className="text-[10px] text-muted-foreground font-mono">
+                              {u.student_id}
+                            </p>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-xs font-mono text-muted-foreground">
+                        {u.department}
+                      </TableCell>
+                      <TableCell className="text-xs font-mono text-muted-foreground">
+                        {u.email}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Badge
+                            variant="outline"
+                            className={`text-[10px] font-mono ${roleBadge(u.role)}`}
+                          >
+                            {u.role.replace("_", " ")}
+                          </Badge>
+                          <Select
+                            value={u.role}
+                            onValueChange={(v) =>
+                              doChangeUserRole(
+                                u.id,
+                                v as UserRole,
+                              )
+                            }
+                          >
+                            <SelectTrigger className="h-7 w-[130px] text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="student">
+                                Student
+                              </SelectItem>
+                              <SelectItem value="coordinator">
+                                Co-ordinator
+                              </SelectItem>
+                              <SelectItem value="club_admin">
+                                Club Admin
+                              </SelectItem>
+                              <SelectItem value="super_admin">
+                                Super Admin
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </div>
         </TabsContent>
       </Tabs>
@@ -619,4 +625,3 @@ export function SuperAdminPage() {
 }
 
 // ─── App Root ─────────────────────────────────────────────────────────────────
-
